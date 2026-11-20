@@ -8,7 +8,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 STATE_FILE = ROOT / ".warden.json"
 
 REGION = os.environ.get("WARDEN_REGION", "us-east-1")
-MODEL_ID = os.environ.get("WARDEN_MODEL", "us.anthropic.claude-sonnet-4-6")
+MODEL_ID = os.environ.get("WARDEN_MODEL", "us.amazon.nova-2-lite-v1:0")
 PREFIX = "policy-warden"
 HARNESS_NAME = "policy_warden"
 
