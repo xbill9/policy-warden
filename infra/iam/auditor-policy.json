@@ -21,6 +21,12 @@
       "Resource": "*"
     },
     {
+      "Sid": "OwnLogsOnly",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:/aws/lambda/policy-warden-scan:*"
+    },
+    {
       "Sid": "DenyEverythingThatIsNotARead",
       "Effect": "Deny",
       "NotAction": [
@@ -28,7 +34,10 @@
         "s3:List*",
         "s3:GetBucket*",
         "ce:Get*",
-        "sts:GetCallerIdentity"
+        "sts:GetCallerIdentity",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
       ],
       "Resource": "*"
     }

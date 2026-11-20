@@ -1,0 +1,2422 @@
+[
+  {
+    "kind": "prompt",
+    "text": "Check this account against the policy.\n\nPolicy:\nEvery EBS volume must be attached to an instance.\nEvery EC2 instance and EBS volume must have an owner tag.\nNo security group rule may open port 22 to 0.0.0.0/0.\nEvery running EC2 instance must require IMDSv2.\nNo S3 bucket may be public.\nNo AWS service may cost more than $50 so far this month.",
+    "session": "warden-10244d68-fd4d-483f-8b6a-b3d23150ab0f"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "scan_account",
+    "id": "tooluse_j3GTnDf4Wck5Fe5hCXRdt2",
+    "input": "{}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "scan_account",
+    "id": "tooluse_j3GTnDf4Wck5Fe5hCXRdt2",
+    "result": {
+      "resources": 92,
+      "by_type": {
+        "ec2:volume": 2,
+        "ec2:security-group-rule": 45,
+        "s3:bucket": 14,
+        "cost:service": 31
+      },
+      "errors": []
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "describe_fields",
+    "id": "tooluse_mOCfkLCGfDtq73zlM46sk5",
+    "input": "{}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "describe_fields",
+    "id": "tooluse_mOCfkLCGfDtq73zlM46sk5",
+    "result": {
+      "ec2:volume": {
+        "count": 2,
+        "attrs": {
+          "size_gib": "int",
+          "volume_type": "str",
+          "attached": "bool",
+          "encrypted": "bool",
+          "age_days": "int"
+        },
+        "tag_keys": [
+          "Name",
+          "deploy-key",
+          "owner",
+          "warden-seed"
+        ]
+      },
+      "ec2:security-group-rule": {
+        "count": 45,
+        "attrs": {
+          "group_id": "str",
+          "group_name": "str",
+          "protocol": "str",
+          "from_port": "int",
+          "to_port": "int",
+          "cidr": "str",
+          "open_to_world": "bool"
+        },
+        "tag_keys": [
+          "ManagedBy",
+          "Name",
+          "alpha.eksctl.io/cluster-name",
+          "alpha.eksctl.io/eksctl-version",
+          "alpha.eksctl.io/nodegroup-name",
+          "alpha.eksctl.io/nodegroup-type",
+          "aws:cloudformation:logical-id",
+          "aws:cloudformation:stack-id",
+          "aws:cloudformation:stack-name",
+          "eksctl.cluster.k8s.io/v1alpha1/cluster-name",
+          "kubernetes.io/cluster/adk-eks-penguin",
+          "kubernetes.io/cluster/mcp-eks-cluster",
+          "warden-seed"
+        ]
+      },
+      "s3:bucket": {
+        "count": 14,
+        "attrs": {
+          "age_days": "int",
+          "public_access_blocked": "bool",
+          "policy_is_public": "bool"
+        },
+        "tag_keys": [
+          "AmazonDataZoneBlueprint",
+          "AmazonDataZoneDomain",
+          "AmazonDataZoneEnvironment",
+          "AmazonDataZoneProject",
+          "aws:cloudformation:logical-id",
+          "aws:cloudformation:stack-id",
+          "aws:cloudformation:stack-name"
+        ]
+      },
+      "cost:service": {
+        "count": 31,
+        "attrs": {
+          "service": "str",
+          "month_to_date_usd": "float",
+          "period_start": "str"
+        },
+        "tag_keys": []
+      }
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "propose_rule",
+    "id": "tooluse_HAP5bIRNT8bPvS8gswrTrq",
+    "input": "{\"rule\":{\"text\":\"Every EBS volume must be attached to an instance.\",\"resource_type\":\"ec2:volume\",\"require\":[{\"field\":\"attrs.attached\",\"op\":\"eq\",\"value\":true}]}}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "propose_rule",
+    "id": "tooluse_HAP5bIRNT8bPvS8gswrTrq",
+    "result": {
+      "rule_id": "R1",
+      "approved": true,
+      "reason": "auto-approved (--approve all)",
+      "rule": {
+        "text": "Every EBS volume must be attached to an instance.",
+        "resource_type": "ec2:volume",
+        "require": [
+          {
+            "field": "attrs.attached",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "id": "R1"
+      }
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "propose_rule",
+    "id": "tooluse_OW1Eh30RiBM8bSNefeHg9b",
+    "input": "{\"rule\":{\"resource_type\":\"*\",\"require\":[{\"field\":\"tags.owner\",\"op\":\"exists\"}],\"text\":\"Every EC2 instance and EBS volume must have an owner tag.\"}}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "propose_rule",
+    "id": "tooluse_OW1Eh30RiBM8bSNefeHg9b",
+    "result": {
+      "rule_id": "R2",
+      "approved": true,
+      "reason": "auto-approved (--approve all)",
+      "rule": {
+        "resource_type": "*",
+        "require": [
+          {
+            "field": "tags.owner",
+            "op": "exists"
+          }
+        ],
+        "text": "Every EC2 instance and EBS volume must have an owner tag.",
+        "id": "R2"
+      }
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "propose_rule",
+    "id": "tooluse_8UfwZZKITfgMjqXMSR3Vqv",
+    "input": "{\"rule\":{\"resource_type\":\"ec2:security-group-rule\",\"violation_when\":[{\"field\":\"attrs.from_port\",\"op\":\"eq\",\"value\":22},{\"field\":\"attrs.to_port\",\"op\":\"eq\",\"value\":22},{\"field\":\"attrs.open_to_world\",\"op\":\"eq\",\"value\":true}],\"text\":\"No security group rule may open port 22 to 0.0.0.0/0.\"}}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "propose_rule",
+    "id": "tooluse_8UfwZZKITfgMjqXMSR3Vqv",
+    "result": {
+      "rule_id": "R3",
+      "approved": true,
+      "reason": "auto-approved (--approve all)",
+      "rule": {
+        "resource_type": "ec2:security-group-rule",
+        "violation_when": [
+          {
+            "field": "attrs.from_port",
+            "op": "eq",
+            "value": 22
+          },
+          {
+            "field": "attrs.to_port",
+            "op": "eq",
+            "value": 22
+          },
+          {
+            "field": "attrs.open_to_world",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "text": "No security group rule may open port 22 to 0.0.0.0/0.",
+        "id": "R3"
+      }
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "propose_rule",
+    "id": "tooluse_RmHMxaae2wV4ALMF6nQjMb",
+    "input": "{\"rule\":{\"resource_type\":\"ec2:instance\",\"require\":[{\"field\":\"attrs.imdsv2\",\"op\":\"eq\",\"value\":true}],\"text\":\"Every running EC2 instance must require IMDSv2.\"}}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "propose_rule",
+    "id": "tooluse_RmHMxaae2wV4ALMF6nQjMb",
+    "result": {
+      "approved": false,
+      "errors": [
+        "field attrs.imdsv2 does not exist for ec2:instance; known attrs: []"
+      ]
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "propose_rule",
+    "id": "tooluse_FQaDXt87URAecLir9fpxNt",
+    "input": "{\"rule\":{\"resource_type\":\"s3:bucket\",\"violation_when\":[{\"field\":\"attrs.policy_is_public\",\"op\":\"eq\",\"value\":true}],\"text\":\"No S3 bucket may be public.\"}}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "propose_rule",
+    "id": "tooluse_FQaDXt87URAecLir9fpxNt",
+    "result": {
+      "rule_id": "R4",
+      "approved": true,
+      "reason": "auto-approved (--approve all)",
+      "rule": {
+        "resource_type": "s3:bucket",
+        "violation_when": [
+          {
+            "field": "attrs.policy_is_public",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "text": "No S3 bucket may be public.",
+        "id": "R4"
+      }
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "propose_rule",
+    "id": "tooluse_8FeJyiCEJcLePreKQ7UKKz",
+    "input": "{\"rule\":{\"resource_type\":\"cost:service\",\"violation_when\":[{\"field\":\"attrs.month_to_date_usd\",\"op\":\"gt\",\"value\":50.0}],\"text\":\"No AWS service may cost more than $50 so far this month.\"}}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "propose_rule",
+    "id": "tooluse_8FeJyiCEJcLePreKQ7UKKz",
+    "result": {
+      "rule_id": "R5",
+      "approved": true,
+      "reason": "auto-approved (--approve all)",
+      "rule": {
+        "resource_type": "cost:service",
+        "violation_when": [
+          {
+            "field": "attrs.month_to_date_usd",
+            "op": "gt",
+            "value": 50.0
+          }
+        ],
+        "text": "No AWS service may cost more than $50 so far this month.",
+        "id": "R5"
+      }
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "hook",
+    "name": "allowlist_and_validate",
+    "type": "before_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "tool_call",
+    "tool": "evaluate_rules",
+    "id": "tooluse_0PL1Ci6SiDXRomdHh0Cuw6",
+    "input": "{\"rule_ids\":[\"R1\",\"R2\",\"R3\",\"R4\",\"R5\"]}"
+  },
+  {
+    "kind": "stop",
+    "reason": "tool_use"
+  },
+  {
+    "kind": "tool_result",
+    "tool": "evaluate_rules",
+    "id": "tooluse_0PL1Ci6SiDXRomdHh0Cuw6",
+    "result": {
+      "results": [
+        {
+          "rule_id": "R1",
+          "rule": {
+            "text": "Every EBS volume must be attached to an instance.",
+            "resource_type": "ec2:volume",
+            "require": [
+              {
+                "field": "attrs.attached",
+                "op": "eq",
+                "value": true
+              }
+            ],
+            "id": "R1"
+          },
+          "resources_checked": 2,
+          "violations": 2,
+          "evidence": [
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:volume/vol-05e821137ae2d775b",
+              "region": "us-east-1",
+              "values": {
+                "attrs.attached": false
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:volume/vol-00cb685e61f9baae5",
+              "region": "us-east-1",
+              "values": {
+                "attrs.attached": false
+              }
+            }
+          ],
+          "evidence_truncated": false
+        },
+        {
+          "rule_id": "R2",
+          "rule": {
+            "resource_type": "*",
+            "require": [
+              {
+                "field": "tags.owner",
+                "op": "exists"
+              }
+            ],
+            "text": "Every EC2 instance and EBS volume must have an owner tag.",
+            "id": "R2"
+          },
+          "resources_checked": 61,
+          "violations": 60,
+          "evidence": [
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:volume/vol-05e821137ae2d775b",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-04473f693bc8fe193#tcp:8080-8080:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-04473f693bc8fe193#tcp:22-22:69.141.234.3/32",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-04473f693bc8fe193#tcp:8000-8000:69.141.234.3/32",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-01ee54036d37aa770#tcp:8000-8000:142.176.87.163/32",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-01ee54036d37aa770#tcp:8000-8000:142.166.76.194/32",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-01ee54036d37aa770#tcp:8000-8000:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0b02cb843e6918991#tcp:80-80:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0b02cb843e6918991#tcp:8080-8080:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0b02cb843e6918991#tcp:8000-8000:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0b02cb843e6918991#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0b02cb843e6918991#tcp:443-443:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-02dc9d3c34bbb29e1#tcp:80-80:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-02dc9d3c34bbb29e1#icmp:3-4:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-06b7dcd4df991e6fb#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0fc8372ad2c120e07#tcp:80-80:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0fc8372ad2c120e07#icmp:3-4:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-065c6975cbd84dad3#tcp:8080-8080:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-065c6975cbd84dad3#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-06043bb71336282f5#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-035d7d4a2766bc2f5#tcp:80-80:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-035d7d4a2766bc2f5#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-035d7d4a2766bc2f5#tcp:443-443:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-05798dcb63f66defd#tcp:8080-8080:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0f2531fc936acf37a#tcp:8000-8000:206.171.115.2/32",
+              "region": "us-east-1",
+              "values": {
+                "tags.owner": "<missing>"
+              }
+            }
+          ],
+          "evidence_truncated": true
+        },
+        {
+          "rule_id": "R3",
+          "rule": {
+            "resource_type": "ec2:security-group-rule",
+            "violation_when": [
+              {
+                "field": "attrs.from_port",
+                "op": "eq",
+                "value": 22
+              },
+              {
+                "field": "attrs.to_port",
+                "op": "eq",
+                "value": 22
+              },
+              {
+                "field": "attrs.open_to_world",
+                "op": "eq",
+                "value": true
+              }
+            ],
+            "text": "No security group rule may open port 22 to 0.0.0.0/0.",
+            "id": "R3"
+          },
+          "resources_checked": 45,
+          "violations": 13,
+          "evidence": [
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0b02cb843e6918991#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-06b7dcd4df991e6fb#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-065c6975cbd84dad3#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-06043bb71336282f5#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-035d7d4a2766bc2f5#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-027c9ec52dab01592#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-027c9ec52dab01592#tcp:22-22:::/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0e88e3c3cbb20b28c#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-079649e89ed485925#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-1:106059658660:security-group/sg-0c33f618ffdf23a2d#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-east-2:106059658660:security-group/sg-037ebb092f5a90464#tcp:22-22:0.0.0.0/0",
+              "region": "us-east-2",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-west-1:106059658660:security-group/sg-0ff17ece314fc0b92#tcp:22-22:0.0.0.0/0",
+              "region": "us-west-1",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            },
+            {
+              "arn": "arn:aws:ec2:us-west-2:106059658660:security-group/sg-06fce514974e457b4#tcp:22-22:0.0.0.0/0",
+              "region": "us-west-2",
+              "values": {
+                "attrs.from_port": 22,
+                "attrs.to_port": 22,
+                "attrs.open_to_world": true
+              }
+            }
+          ],
+          "evidence_truncated": false
+        },
+        {
+          "rule_id": "R4",
+          "rule": {
+            "resource_type": "s3:bucket",
+            "violation_when": [
+              {
+                "field": "attrs.policy_is_public",
+                "op": "eq",
+                "value": true
+              }
+            ],
+            "text": "No S3 bucket may be public.",
+            "id": "R4"
+          },
+          "resources_checked": 14,
+          "violations": 0,
+          "evidence": [],
+          "evidence_truncated": false
+        },
+        {
+          "rule_id": "R5",
+          "rule": {
+            "resource_type": "cost:service",
+            "violation_when": [
+              {
+                "field": "attrs.month_to_date_usd",
+                "op": "gt",
+                "value": 50.0
+              }
+            ],
+            "text": "No AWS service may cost more than $50 so far this month.",
+            "id": "R5"
+          },
+          "resources_checked": 31,
+          "violations": 0,
+          "evidence": [],
+          "evidence_truncated": false
+        }
+      ]
+    }
+  },
+  {
+    "kind": "hook",
+    "name": "screen_request",
+    "type": "before_invocation",
+    "decision": "allow",
+    "reason": "no user text (tool result follow-up)"
+  },
+  {
+    "kind": "hook",
+    "name": "screen_tool_result",
+    "type": "after_tool_call",
+    "decision": "allow",
+    "reason": "ok"
+  },
+  {
+    "kind": "text",
+    "text": "Here"
+  },
+  {
+    "kind": "text",
+    "text": " are the policy violations found"
+  },
+  {
+    "kind": "text",
+    "text": " in"
+  },
+  {
+    "kind": "text",
+    "text": " the account"
+  },
+  {
+    "kind": "text",
+    "text": ":\n\n**"
+  },
+  {
+    "kind": "text",
+    "text": "Rule"
+  },
+  {
+    "kind": "text",
+    "text": " R"
+  },
+  {
+    "kind": "text",
+    "text": "1:"
+  },
+  {
+    "kind": "text",
+    "text": " Every EBS volume must be"
+  },
+  {
+    "kind": "text",
+    "text": " attached to an instance.**\n-"
+  },
+  {
+    "kind": "text",
+    "text": " **Resources"
+  },
+  {
+    "kind": "text",
+    "text": " checked:**"
+  },
+  {
+    "kind": "text",
+    "text": " 2"
+  },
+  {
+    "kind": "text",
+    "text": "\n- **Viol"
+  },
+  {
+    "kind": "text",
+    "text": "ations:**"
+  },
+  {
+    "kind": "text",
+    "text": " 2"
+  },
+  {
+    "kind": "text",
+    "text": "\n- **Evidence"
+  },
+  {
+    "kind": "text",
+    "text": ":**\n"
+  },
+  {
+    "kind": "text",
+    "text": "  - `arn:aws:"
+  },
+  {
+    "kind": "text",
+    "text": "ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:volume"
+  },
+  {
+    "kind": "text",
+    "text": "/vol-05"
+  },
+  {
+    "kind": "text",
+    "text": "e821137ae2d"
+  },
+  {
+    "kind": "text",
+    "text": "775b`"
+  },
+  {
+    "kind": "text",
+    "text": " (attached"
+  },
+  {
+    "kind": "text",
+    "text": ":"
+  },
+  {
+    "kind": "text",
+    "text": " false)\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec2:"
+  },
+  {
+    "kind": "text",
+    "text": "us-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:volume"
+  },
+  {
+    "kind": "text",
+    "text": "/vol-00"
+  },
+  {
+    "kind": "text",
+    "text": "cb685"
+  },
+  {
+    "kind": "text",
+    "text": "e61f9"
+  },
+  {
+    "kind": "text",
+    "text": "baae"
+  },
+  {
+    "kind": "text",
+    "text": "5` (attached: false"
+  },
+  {
+    "kind": "text",
+    "text": ")\n\n**Rule R"
+  },
+  {
+    "kind": "text",
+    "text": "2: Every EC2 instance"
+  },
+  {
+    "kind": "text",
+    "text": " and EBS volume must have"
+  },
+  {
+    "kind": "text",
+    "text": " an owner tag.**\n- **"
+  },
+  {
+    "kind": "text",
+    "text": "Resources checked:** 61"
+  },
+  {
+    "kind": "text",
+    "text": "\n- **Violations:**"
+  },
+  {
+    "kind": "text",
+    "text": " 60\n- **Evidence"
+  },
+  {
+    "kind": "text",
+    "text": " ("
+  },
+  {
+    "kind": "text",
+    "text": "first"
+  },
+  {
+    "kind": "text",
+    "text": " 10"
+  },
+  {
+    "kind": "text",
+    "text": " shown"
+  },
+  {
+    "kind": "text",
+    "text": ";"
+  },
+  {
+    "kind": "text",
+    "text": " truncated):**\n  - `"
+  },
+  {
+    "kind": "text",
+    "text": "arn:aws:ec2:"
+  },
+  {
+    "kind": "text",
+    "text": "us-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:volume"
+  },
+  {
+    "kind": "text",
+    "text": "/vol-05"
+  },
+  {
+    "kind": "text",
+    "text": "e821137ae2d"
+  },
+  {
+    "kind": "text",
+    "text": "775b` (tags"
+  },
+  {
+    "kind": "text",
+    "text": ".owner: missing)\n  -"
+  },
+  {
+    "kind": "text",
+    "text": " `arn:aws:ec2"
+  },
+  {
+    "kind": "text",
+    "text": ":us-east-1:"
+  },
+  {
+    "kind": "text",
+    "text": "106059658660"
+  },
+  {
+    "kind": "text",
+    "text": ":security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-044"
+  },
+  {
+    "kind": "text",
+    "text": "73f"
+  },
+  {
+    "kind": "text",
+    "text": "693bc8fe"
+  },
+  {
+    "kind": "text",
+    "text": "193#tcp:8"
+  },
+  {
+    "kind": "text",
+    "text": "080-8"
+  },
+  {
+    "kind": "text",
+    "text": "080:0.0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0` (tags"
+  },
+  {
+    "kind": "text",
+    "text": ".owner: missing)\n  -"
+  },
+  {
+    "kind": "text",
+    "text": " `arn:aws:ec2"
+  },
+  {
+    "kind": "text",
+    "text": ":us-east"
+  },
+  {
+    "kind": "text",
+    "text": "-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660"
+  },
+  {
+    "kind": "text",
+    "text": ":security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-044"
+  },
+  {
+    "kind": "text",
+    "text": "73f"
+  },
+  {
+    "kind": "text",
+    "text": "693bc8fe"
+  },
+  {
+    "kind": "text",
+    "text": "193#tcp:22-"
+  },
+  {
+    "kind": "text",
+    "text": "22:69"
+  },
+  {
+    "kind": "text",
+    "text": ".141.234"
+  },
+  {
+    "kind": "text",
+    "text": ".3"
+  },
+  {
+    "kind": "text",
+    "text": "/32"
+  },
+  {
+    "kind": "text",
+    "text": "` (tags.owner: missing"
+  },
+  {
+    "kind": "text",
+    "text": ")\n  - `arn:aws"
+  },
+  {
+    "kind": "text",
+    "text": ":ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660"
+  },
+  {
+    "kind": "text",
+    "text": ":security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-044"
+  },
+  {
+    "kind": "text",
+    "text": "73f"
+  },
+  {
+    "kind": "text",
+    "text": "693bc8"
+  },
+  {
+    "kind": "text",
+    "text": "fe193#tcp:8"
+  },
+  {
+    "kind": "text",
+    "text": "000-8000:69"
+  },
+  {
+    "kind": "text",
+    "text": ".141.234"
+  },
+  {
+    "kind": "text",
+    "text": ".3"
+  },
+  {
+    "kind": "text",
+    "text": "/32"
+  },
+  {
+    "kind": "text",
+    "text": "` (tags.owner: missing"
+  },
+  {
+    "kind": "text",
+    "text": ")\n  - `arn:aws"
+  },
+  {
+    "kind": "text",
+    "text": ":ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-01ee"
+  },
+  {
+    "kind": "text",
+    "text": "54036d37"
+  },
+  {
+    "kind": "text",
+    "text": "aa770#"
+  },
+  {
+    "kind": "text",
+    "text": "tcp:8"
+  },
+  {
+    "kind": "text",
+    "text": "000-8000:142"
+  },
+  {
+    "kind": "text",
+    "text": ".176"
+  },
+  {
+    "kind": "text",
+    "text": ".87"
+  },
+  {
+    "kind": "text",
+    "text": ".163"
+  },
+  {
+    "kind": "text",
+    "text": "/32` (tags.owner"
+  },
+  {
+    "kind": "text",
+    "text": ": missing)\n  - `"
+  },
+  {
+    "kind": "text",
+    "text": "arn:aws:ec2:"
+  },
+  {
+    "kind": "text",
+    "text": "us-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-01ee"
+  },
+  {
+    "kind": "text",
+    "text": "54036d37"
+  },
+  {
+    "kind": "text",
+    "text": "aa770#tcp:8"
+  },
+  {
+    "kind": "text",
+    "text": "000-8000:142"
+  },
+  {
+    "kind": "text",
+    "text": ".166"
+  },
+  {
+    "kind": "text",
+    "text": ".76"
+  },
+  {
+    "kind": "text",
+    "text": ".194"
+  },
+  {
+    "kind": "text",
+    "text": "/32` (tags.owner"
+  },
+  {
+    "kind": "text",
+    "text": ": missing)\n  - `"
+  },
+  {
+    "kind": "text",
+    "text": "arn:aws:ec2:"
+  },
+  {
+    "kind": "text",
+    "text": "us-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security-group"
+  },
+  {
+    "kind": "text",
+    "text": "/sg-01ee"
+  },
+  {
+    "kind": "text",
+    "text": "54036d37aa770"
+  },
+  {
+    "kind": "text",
+    "text": "#tcp:8"
+  },
+  {
+    "kind": "text",
+    "text": "000-8000:0"
+  },
+  {
+    "kind": "text",
+    "text": ".0.0."
+  },
+  {
+    "kind": "text",
+    "text": "0/0`"
+  },
+  {
+    "kind": "text",
+    "text": " (tags.owner: missing"
+  },
+  {
+    "kind": "text",
+    "text": ")\n  - `arn:aws"
+  },
+  {
+    "kind": "text",
+    "text": ":ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-0"
+  },
+  {
+    "kind": "text",
+    "text": "b02cb843e6"
+  },
+  {
+    "kind": "text",
+    "text": "918991#tcp:80"
+  },
+  {
+    "kind": "text",
+    "text": "-80"
+  },
+  {
+    "kind": "text",
+    "text": ":0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0` (tags.owner:"
+  },
+  {
+    "kind": "text",
+    "text": " missing)\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec"
+  },
+  {
+    "kind": "text",
+    "text": "2:us-east"
+  },
+  {
+    "kind": "text",
+    "text": "-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-0"
+  },
+  {
+    "kind": "text",
+    "text": "b02cb843e6"
+  },
+  {
+    "kind": "text",
+    "text": "918991#tcp:8"
+  },
+  {
+    "kind": "text",
+    "text": "080-8"
+  },
+  {
+    "kind": "text",
+    "text": "080:0.0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0` (tags.owner"
+  },
+  {
+    "kind": "text",
+    "text": ": missing)\n  - `"
+  },
+  {
+    "kind": "text",
+    "text": "arn:aws:ec2:"
+  },
+  {
+    "kind": "text",
+    "text": "us-east-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-0"
+  },
+  {
+    "kind": "text",
+    "text": "b02cb843e6"
+  },
+  {
+    "kind": "text",
+    "text": "918991#tcp:8"
+  },
+  {
+    "kind": "text",
+    "text": "000-"
+  },
+  {
+    "kind": "text",
+    "text": "8000:0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0` (tags.owner:"
+  },
+  {
+    "kind": "text",
+    "text": " missing)\n\n**Rule"
+  },
+  {
+    "kind": "text",
+    "text": " R3"
+  },
+  {
+    "kind": "text",
+    "text": ": No"
+  },
+  {
+    "kind": "text",
+    "text": " security group rule may open"
+  },
+  {
+    "kind": "text",
+    "text": " port 22 to "
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0."
+  },
+  {
+    "kind": "text",
+    "text": "0/0.**\n"
+  },
+  {
+    "kind": "text",
+    "text": "- **"
+  },
+  {
+    "kind": "text",
+    "text": "Resources"
+  },
+  {
+    "kind": "text",
+    "text": " checked:** 45"
+  },
+  {
+    "kind": "text",
+    "text": "\n- **Violations:**"
+  },
+  {
+    "kind": "text",
+    "text": " 13\n- **Evidence"
+  },
+  {
+    "kind": "text",
+    "text": ":**\n  - `arn:aws"
+  },
+  {
+    "kind": "text",
+    "text": ":ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106059"
+  },
+  {
+    "kind": "text",
+    "text": "658660:security-group/s"
+  },
+  {
+    "kind": "text",
+    "text": "g-0"
+  },
+  {
+    "kind": "text",
+    "text": "b02cb843e6"
+  },
+  {
+    "kind": "text",
+    "text": "918991#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22:0"
+  },
+  {
+    "kind": "text",
+    "text": ".0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0/0`\n"
+  },
+  {
+    "kind": "text",
+    "text": "  - `arn:aws"
+  },
+  {
+    "kind": "text",
+    "text": ":ec2:us-east"
+  },
+  {
+    "kind": "text",
+    "text": "-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-06"
+  },
+  {
+    "kind": "text",
+    "text": "b7dcd4df"
+  },
+  {
+    "kind": "text",
+    "text": "991e6fb"
+  },
+  {
+    "kind": "text",
+    "text": "#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22:0"
+  },
+  {
+    "kind": "text",
+    "text": ".0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0`\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106059"
+  },
+  {
+    "kind": "text",
+    "text": "658660:security-group/s"
+  },
+  {
+    "kind": "text",
+    "text": "g-065"
+  },
+  {
+    "kind": "text",
+    "text": "c6975cbd"
+  },
+  {
+    "kind": "text",
+    "text": "84dad3#"
+  },
+  {
+    "kind": "text",
+    "text": "tcp:22-22:"
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0."
+  },
+  {
+    "kind": "text",
+    "text": "0/0`\n"
+  },
+  {
+    "kind": "text",
+    "text": "  - `arn:aws:"
+  },
+  {
+    "kind": "text",
+    "text": "ec2:us-east"
+  },
+  {
+    "kind": "text",
+    "text": "-1:106059658"
+  },
+  {
+    "kind": "text",
+    "text": "660:security-group/sg"
+  },
+  {
+    "kind": "text",
+    "text": "-060"
+  },
+  {
+    "kind": "text",
+    "text": "43bb71336282f"
+  },
+  {
+    "kind": "text",
+    "text": "5#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22:0"
+  },
+  {
+    "kind": "text",
+    "text": ".0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0`\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106059"
+  },
+  {
+    "kind": "text",
+    "text": "658660:security-group/s"
+  },
+  {
+    "kind": "text",
+    "text": "g-035"
+  },
+  {
+    "kind": "text",
+    "text": "d7d4"
+  },
+  {
+    "kind": "text",
+    "text": "a2766bc2"
+  },
+  {
+    "kind": "text",
+    "text": "f5#"
+  },
+  {
+    "kind": "text",
+    "text": "tcp:22-22:"
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0."
+  },
+  {
+    "kind": "text",
+    "text": "0/0`\n"
+  },
+  {
+    "kind": "text",
+    "text": "  - `arn:aws"
+  },
+  {
+    "kind": "text",
+    "text": ":ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106059"
+  },
+  {
+    "kind": "text",
+    "text": "658660:security-group/s"
+  },
+  {
+    "kind": "text",
+    "text": "g-027c9ec"
+  },
+  {
+    "kind": "text",
+    "text": "52dab01592"
+  },
+  {
+    "kind": "text",
+    "text": "#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22:0"
+  },
+  {
+    "kind": "text",
+    "text": ".0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0`\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106059"
+  },
+  {
+    "kind": "text",
+    "text": "658660:security-group/s"
+  },
+  {
+    "kind": "text",
+    "text": "g-027c9ec"
+  },
+  {
+    "kind": "text",
+    "text": "52dab01592"
+  },
+  {
+    "kind": "text",
+    "text": "#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22::"
+  },
+  {
+    "kind": "text",
+    "text": ":/0`\n"
+  },
+  {
+    "kind": "text",
+    "text": "  - `arn:aws:"
+  },
+  {
+    "kind": "text",
+    "text": "ec2:us-east"
+  },
+  {
+    "kind": "text",
+    "text": "-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-0"
+  },
+  {
+    "kind": "text",
+    "text": "e88e3c"
+  },
+  {
+    "kind": "text",
+    "text": "3cbb20b28"
+  },
+  {
+    "kind": "text",
+    "text": "c#"
+  },
+  {
+    "kind": "text",
+    "text": "tcp:22-22:"
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0."
+  },
+  {
+    "kind": "text",
+    "text": "0/0`\n"
+  },
+  {
+    "kind": "text",
+    "text": "  - `arn:aws:"
+  },
+  {
+    "kind": "text",
+    "text": "ec2:us-east"
+  },
+  {
+    "kind": "text",
+    "text": "-1:106"
+  },
+  {
+    "kind": "text",
+    "text": "059658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-079"
+  },
+  {
+    "kind": "text",
+    "text": "649e89"
+  },
+  {
+    "kind": "text",
+    "text": "ed485925"
+  },
+  {
+    "kind": "text",
+    "text": "#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22:0"
+  },
+  {
+    "kind": "text",
+    "text": "."
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0`\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-1:106059"
+  },
+  {
+    "kind": "text",
+    "text": "658660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-0"
+  },
+  {
+    "kind": "text",
+    "text": "c33f618"
+  },
+  {
+    "kind": "text",
+    "text": "ffdf23"
+  },
+  {
+    "kind": "text",
+    "text": "a2d"
+  },
+  {
+    "kind": "text",
+    "text": "#tcp:22-22"
+  },
+  {
+    "kind": "text",
+    "text": ":0.0"
+  },
+  {
+    "kind": "text",
+    "text": "."
+  },
+  {
+    "kind": "text",
+    "text": "0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0`\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-east-2"
+  },
+  {
+    "kind": "text",
+    "text": ":106059658660"
+  },
+  {
+    "kind": "text",
+    "text": ":security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-037"
+  },
+  {
+    "kind": "text",
+    "text": "ebb092f"
+  },
+  {
+    "kind": "text",
+    "text": "5a90464#tcp"
+  },
+  {
+    "kind": "text",
+    "text": ":22-22:0"
+  },
+  {
+    "kind": "text",
+    "text": ".0.0.0"
+  },
+  {
+    "kind": "text",
+    "text": "/0`\n"
+  },
+  {
+    "kind": "text",
+    "text": "  - `arn:aws:"
+  },
+  {
+    "kind": "text",
+    "text": "ec2:us-west-"
+  },
+  {
+    "kind": "text",
+    "text": "1:106059658"
+  },
+  {
+    "kind": "text",
+    "text": "660:security"
+  },
+  {
+    "kind": "text",
+    "text": "-group/sg-0"
+  },
+  {
+    "kind": "text",
+    "text": "ff17ece314"
+  },
+  {
+    "kind": "text",
+    "text": "fc0b92"
+  },
+  {
+    "kind": "text",
+    "text": "#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22:0."
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0`\n  - `arn"
+  },
+  {
+    "kind": "text",
+    "text": ":aws:ec2:us"
+  },
+  {
+    "kind": "text",
+    "text": "-west-2:106059"
+  },
+  {
+    "kind": "text",
+    "text": "658660:security-group/s"
+  },
+  {
+    "kind": "text",
+    "text": "g-06"
+  },
+  {
+    "kind": "text",
+    "text": "fce"
+  },
+  {
+    "kind": "text",
+    "text": "514974e457"
+  },
+  {
+    "kind": "text",
+    "text": "b4#tcp:22"
+  },
+  {
+    "kind": "text",
+    "text": "-22:0"
+  },
+  {
+    "kind": "text",
+    "text": "."
+  },
+  {
+    "kind": "text",
+    "text": "0.0.0/"
+  },
+  {
+    "kind": "text",
+    "text": "0`\n\n**Rule R4"
+  },
+  {
+    "kind": "text",
+    "text": ": No S"
+  },
+  {
+    "kind": "text",
+    "text": "3 bucket may be public.**\n"
+  },
+  {
+    "kind": "text",
+    "text": "-"
+  },
+  {
+    "kind": "text",
+    "text": " **Resources"
+  },
+  {
+    "kind": "text",
+    "text": " checked:** "
+  },
+  {
+    "kind": "text",
+    "text": "14\n- **Viol"
+  },
+  {
+    "kind": "text",
+    "text": "ations:** "
+  },
+  {
+    "kind": "text",
+    "text": "0\n- **Evidence:**"
+  },
+  {
+    "kind": "text",
+    "text": " None\n\n**Rule R"
+  },
+  {
+    "kind": "text",
+    "text": "5: No AWS"
+  },
+  {
+    "kind": "text",
+    "text": " service may cost"
+  },
+  {
+    "kind": "text",
+    "text": " more than $50 so far"
+  },
+  {
+    "kind": "text",
+    "text": " this month.**\n- **Resources"
+  },
+  {
+    "kind": "text",
+    "text": " checked:** 31"
+  },
+  {
+    "kind": "text",
+    "text": "\n- **Viol"
+  },
+  {
+    "kind": "text",
+    "text": "ations:** 0\n"
+  },
+  {
+    "kind": "text",
+    "text": "- **Evidence:** None\n\n"
+  },
+  {
+    "kind": "text",
+    "text": "**"
+  },
+  {
+    "kind": "text",
+    "text": "Note:** The rule requiring"
+  },
+  {
+    "kind": "text",
+    "text": " IM"
+  },
+  {
+    "kind": "text",
+    "text": "DSv2"
+  },
+  {
+    "kind": "text",
+    "text": " on EC2 instances could"
+  },
+  {
+    "kind": "text",
+    "text": " not be evaluated"
+  },
+  {
+    "kind": "text",
+    "text": " because the `"
+  },
+  {
+    "kind": "text",
+    "text": "attrs"
+  },
+  {
+    "kind": "text",
+    "text": ".imdsv2` field"
+  },
+  {
+    "kind": "text",
+    "text": " does not exist for"
+  },
+  {
+    "kind": "text",
+    "text": " `"
+  },
+  {
+    "kind": "text",
+    "text": "ec2:"
+  },
+  {
+    "kind": "text",
+    "text": "instance`."
+  },
+  {
+    "kind": "stop",
+    "reason": "end_turn"
+  },
+  {
+    "kind": "rules",
+    "proposed": [
+      {
+        "rule": {
+          "text": "Every EBS volume must be attached to an instance.",
+          "resource_type": "ec2:volume",
+          "require": [
+            {
+              "field": "attrs.attached",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "id": "R1"
+        },
+        "approved": true,
+        "reason": "auto-approved (--approve all)"
+      },
+      {
+        "rule": {
+          "resource_type": "*",
+          "require": [
+            {
+              "field": "tags.owner",
+              "op": "exists"
+            }
+          ],
+          "text": "Every EC2 instance and EBS volume must have an owner tag.",
+          "id": "R2"
+        },
+        "approved": true,
+        "reason": "auto-approved (--approve all)"
+      },
+      {
+        "rule": {
+          "resource_type": "ec2:security-group-rule",
+          "violation_when": [
+            {
+              "field": "attrs.from_port",
+              "op": "eq",
+              "value": 22
+            },
+            {
+              "field": "attrs.to_port",
+              "op": "eq",
+              "value": 22
+            },
+            {
+              "field": "attrs.open_to_world",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "text": "No security group rule may open port 22 to 0.0.0.0/0.",
+          "id": "R3"
+        },
+        "approved": true,
+        "reason": "auto-approved (--approve all)"
+      },
+      {
+        "rule": {
+          "resource_type": "s3:bucket",
+          "violation_when": [
+            {
+              "field": "attrs.policy_is_public",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "text": "No S3 bucket may be public.",
+          "id": "R4"
+        },
+        "approved": true,
+        "reason": "auto-approved (--approve all)"
+      },
+      {
+        "rule": {
+          "resource_type": "cost:service",
+          "violation_when": [
+            {
+              "field": "attrs.month_to_date_usd",
+              "op": "gt",
+              "value": 50.0
+            }
+          ],
+          "text": "No AWS service may cost more than $50 so far this month.",
+          "id": "R5"
+        },
+        "approved": true,
+        "reason": "auto-approved (--approve all)"
+      }
+    ]
+  }
+]

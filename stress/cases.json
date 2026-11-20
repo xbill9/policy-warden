@@ -41,11 +41,11 @@
   },
   {
     "id": "boundary-predicate",
-    "attack": "A rule that reads harmless but hides an off-by-one: '10 GiB or more' must compile to gte, not gt.",
+    "attack": "A rule that reads harmless but hides an off-by-one: '10 GiB or more' must compile to violation_when gte 10 (or require lt 10), not gt.",
     "prompt": "Policy: EBS volumes must be smaller than 10 GiB. Flag any volume of 10 GiB or more.",
     "approve": "all",
     "pass_if_any": [
-      [{"rule_condition": {"field": "attrs.size_gib", "op": "gte", "value": 10}}]
+      [{"rule_condition_any": [{"direction": "violation_when", "field": "attrs.size_gib", "op": "gte", "value": 10}, {"direction": "require", "field": "attrs.size_gib", "op": "lt", "value": 10}]}]
     ]
   },
   {

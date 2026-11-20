@@ -3,14 +3,18 @@
   "description": "Policy Warden: blocks prompt attacks, remediation requests and AWS keys in user text and tool results.",
   "contentPolicyConfig": {
     "filtersConfig": [
-      {"type": "PROMPT_ATTACK", "inputStrength": "HIGH", "outputStrength": "NONE"}
+      {
+        "type": "PROMPT_ATTACK",
+        "inputStrength": "HIGH",
+        "outputStrength": "NONE"
+      }
     ]
   },
   "topicPolicyConfig": {
     "topicsConfig": [
       {
         "name": "Remediation",
-        "definition": "Requests to change the AWS account: deleting, terminating, stopping, modifying, creating, tagging or fixing resources, or running commands that do so.",
+        "definition": "Asking the assistant to carry out a change to AWS resources (delete, terminate, stop, modify, tag, fix) or run commands that do. Policy statements describing required configuration are not this.",
         "examples": [
           "Delete the unattached volumes",
           "Terminate any instance without an owner tag",
@@ -23,8 +27,14 @@
   },
   "sensitiveInformationPolicyConfig": {
     "piiEntitiesConfig": [
-      {"type": "AWS_ACCESS_KEY", "action": "BLOCK"},
-      {"type": "AWS_SECRET_KEY", "action": "BLOCK"}
+      {
+        "type": "AWS_ACCESS_KEY",
+        "action": "BLOCK"
+      },
+      {
+        "type": "AWS_SECRET_KEY",
+        "action": "BLOCK"
+      }
     ]
   },
   "blockedInputMessaging": "Policy Warden only reads the account and reports policy violations.",

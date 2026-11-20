@@ -120,6 +120,13 @@ function condText(c) {
   return `<code>${esc(c.field)} ${esc(OPS[c.op] || c.op)}${esc(v)}</code>`;
 }
 
+const ruleConds = (r) => r.require || r.violation_when || [];
+function directionText(r) {
+  const what = r.resource_type === "*" ? "resource" : r.resource_type;
+  return r.require ? `A ${what} violates this rule UNLESS all of these hold:`
+                   : `A ${what} violates this rule WHEN all of these hold:`;
+}
+
 // ---- policy ----
 function renderPolicy() {
   $("rules").innerHTML = policy.length ? policy.map((r, i) =>
@@ -191,8 +198,8 @@ function renderRun(run) {
     const r = run.pending.rule;
     h += `<div class="card approval"><div class="head"><h3>Approve rule ${esc(r.id)}?</h3><span class="muted">${esc(r.resource_type)} · ${esc(r.severity || "medium")}</span></div>
       <p>${esc(r.text)}</p>
-      <div class="muted">A ${esc(r.resource_type === "*" ? "resource" : r.resource_type)} violates this rule when all of these hold:</div>
-      <div class="conds">${r.where.map(condText).join("")}</div>
+      <div class="muted">${esc(directionText(r))}</div>
+      <div class="conds">${ruleConds(r).map(condText).join("")}</div>
       <details><summary>Rule JSON</summary><pre>${esc(JSON.stringify(r, null, 2))}</pre></details>
       <div class="row"><button class="approve" id="ap">Approve</button><button class="reject" id="rj">Reject</button></div></div>`;
   }
@@ -214,7 +221,7 @@ function renderRun(run) {
       : r.violations ? `<span class="badge bad">${r.violations} of ${r.resources_checked} violate</span>`
       : `<span class="badge ok">0 of ${r.resources_checked} violate</span>`;
     h += `<div class="card"><div class="head"><h3>${esc(r.rule_id)} · ${esc(r.sentence || "")}</h3>${status}</div>`;
-    if (r.rule && r.rule.where) h += `<div class="conds">${r.rule.where.map(condText).join("")}</div>`;
+    if (r.rule && ruleConds(r.rule).length) h += `<div class="muted">${esc(directionText(r.rule))}</div><div class="conds">${ruleConds(r.rule).map(condText).join("")}</div>`;
     if (r.reason) h += `<div class="muted">${esc(r.reason)}</div>`;
     if (r.error) h += `<div class="err">${esc([].concat(r.error).join("; "))}</div>`;
     if (r.violating_monthly_usd != null) h += `<div class="muted">Month-to-date cost of violating items: $${esc(r.violating_monthly_usd)}</div>`;

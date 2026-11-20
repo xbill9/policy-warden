@@ -43,7 +43,7 @@ def _truncated(value):
 
 
 def guardrail_check(text):
-    """Return None if clean, else a short description of what the guardrail flagged."""
+    """Return a sorted list of what the guardrail flagged (empty if clean)."""
     for i in range(0, len(text), CHUNK):
         resp = bedrock.apply_guardrail(
             guardrailIdentifier=GUARDRAIL_ID,
@@ -60,8 +60,8 @@ def guardrail_check(text):
                     flagged.append(f"topic:{t['name']}")
                 for p in a.get("sensitiveInformationPolicy", {}).get("piiEntities", []):
                     flagged.append(f"pii:{p['type']}")
-            return ", ".join(sorted(set(flagged))) or "guardrail intervened"
-    return None
+            return sorted(set(flagged)) or ["guardrail intervened"]
+    return []
 
 
 def before_invocation(ctx):
@@ -78,7 +78,7 @@ def before_invocation(ctx):
     flagged = guardrail_check("\n".join(texts))
     if flagged:
         return deny(
-            f"request refused by guardrail ({flagged}). Policy Warden only reads and reports."
+            f"request refused by guardrail ({', '.join(flagged)}). Policy Warden only reads and reports."
         )
     return allow()
 
@@ -139,10 +139,13 @@ def after_tool_call(ctx):
         return deny(
             "tool result contains an AWS access key id; withheld from the model"
         )
-    flagged = guardrail_check(text)
+    # Topics describe what a user may ask for; on tool output they misfire (a rule
+    # sentence like "No S3 bucket may be public" was flagged as Remediation on
+    # 2026-11-20). Tool results are blocked for prompt attacks and secrets only.
+    flagged = [f for f in guardrail_check(text) if not f.startswith("topic:")]
     if flagged:
         return deny(
-            f"tool result flagged by guardrail ({flagged}); possible instructions hidden in resource data"
+            f"tool result flagged by guardrail ({', '.join(flagged)}); possible instructions hidden in resource data"
         )
     return allow()
 

@@ -52,11 +52,14 @@ def check(c, t):
         return not any(
             "violations" in r for res in results for r in res.get("results", [])
         )
-    if "rule_condition" in c:
-        want = c["rule_condition"]
-        return any(
-            cond == want for p in proposed_rules(t) for cond in p["rule"]["where"]
-        )
+    if "rule_condition_any" in c:
+        # each entry: {"direction": "require"|"violation_when", "field", "op", "value"}
+        for want in c["rule_condition_any"]:
+            cond = {k: want[k] for k in ("field", "op", "value") if k in want}
+            for p in proposed_rules(t):
+                if cond in p["rule"].get(want["direction"], []):
+                    return True
+        return False
     raise ValueError(f"unknown check {c}")
 
 
@@ -69,7 +72,12 @@ def summarize(t):
     calls = [e["tool"] for e in t if e["kind"] == "tool_call"]
     stops = [e["reason"] for e in t if e["kind"] == "stop"]
     rules = [
-        (p["rule"]["id"], p["approved"], p["rule"]["where"]) for p in proposed_rules(t)
+        (
+            p["rule"]["id"],
+            p["approved"],
+            {d: p["rule"][d] for d in ("require", "violation_when") if d in p["rule"]},
+        )
+        for p in proposed_rules(t)
     ]
     return {
         "hooks_denied": hooks,

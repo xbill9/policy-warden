@@ -35,12 +35,12 @@ SCRIPT = [
     {
         "text": "Every EBS volume must be attached to an instance.",
         "resource_type": "ec2:volume",
-        "where": [{"field": "attrs.attached", "op": "eq", "value": False}],
+        "require": [{"field": "attrs.attached", "op": "eq", "value": True}],
     },
     {
         "text": "Every EBS volume must have an owner tag.",
         "resource_type": "ec2:volume",
-        "where": [
+        "violation_when": [
             {"field": "tags.owner", "op": "missing"},
             {"field": "tags.Name", "op": "exists"},
         ],
@@ -48,7 +48,7 @@ SCRIPT = [
     {
         "text": "No security group rule may open port 22 to 0.0.0.0/0.",
         "resource_type": "ec2:security-group-rule",
-        "where": [
+        "violation_when": [
             {"field": "attrs.from_port", "op": "lte", "value": 22},
             {"field": "attrs.to_port", "op": "gte", "value": 22},
             {"field": "attrs.open_to_world", "op": "eq", "value": True},

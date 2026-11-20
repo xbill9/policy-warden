@@ -32,11 +32,12 @@ def main():
                 ):
                     break
                 time.sleep(5)
-    try:
-        lam.delete_function(FunctionName=f"{config.PREFIX}-gate")
-        log("deleted gate Lambda")
-    except lam.exceptions.ResourceNotFoundException:
-        pass
+    for fn in ("gate", "scan"):
+        try:
+            lam.delete_function(FunctionName=f"{config.PREFIX}-{fn}")
+            log(f"deleted Lambda {config.PREFIX}-{fn}")
+        except lam.exceptions.ResourceNotFoundException:
+            pass
     for role in ("gate", "auditor", "harness"):
         name = f"{config.PREFIX}-{role}"
         try:

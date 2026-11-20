@@ -20,18 +20,29 @@ from .tools import TOOL_SPECS, ToolBox, as_tool_result
 MAX_TURNS = 15
 
 
-def auditor_session(state):
-    """Credentials for the read-only auditor role. Every scan runs with these."""
-    sts = boto3.client("sts", region_name=config.REGION)
-    creds = sts.assume_role(
-        RoleArn=state["auditor_role_arn"], RoleSessionName="policy-warden-scan"
-    )["Credentials"]
-    return boto3.Session(
-        aws_access_key_id=creds["AccessKeyId"],
-        aws_secret_access_key=creds["SecretAccessKey"],
-        aws_session_token=creds["SessionToken"],
-        region_name=config.REGION,
+def lambda_scanner(state):
+    """scan_account runs in the scanner Lambda, whose execution role is the read-only
+    auditor role. This process never holds account-read credentials of its own."""
+    lam = boto3.client(
+        "lambda", region_name=config.REGION, config=Config(read_timeout=300)
     )
+
+    def scan(regions):
+        resp = lam.invoke(
+            FunctionName=state["scanner_arn"],
+            Payload=json.dumps({"regions": regions or None}).encode(),
+        )
+        body = json.loads(resp["Payload"].read() or b"{}")
+        if resp.get("FunctionError") or "error" in body or "errorMessage" in body:
+            msg = (
+                body.get("error")
+                or body.get("errorMessage")
+                or resp.get("FunctionError")
+            )
+            return [], [f"scanner: {msg}"]
+        return body["records"], body["errors"]
+
+    return scan
 
 
 def make_approver(mode):
@@ -138,7 +149,7 @@ def run(prompt, approve="ask", echo=True, state=None, approver=None, transcript=
         region_name=config.REGION,
         config=Config(read_timeout=600, tcp_keepalive=True),
     )
-    toolbox = ToolBox(auditor_session(state), approver or make_approver(approve))
+    toolbox = ToolBox(lambda_scanner(state), approver or make_approver(approve))
     session_id = f"warden-{uuid.uuid4()}"
     transcript = transcript if transcript is not None else []
     transcript.append({"kind": "prompt", "text": prompt, "session": session_id})

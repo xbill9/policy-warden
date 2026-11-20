@@ -23,7 +23,7 @@ from botocore.exceptions import ClientError
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from warden import config
-from warden.tools import TOOL_NAMES, harness_tools
+from warden.tools import ALLOWED_SELECTORS, harness_tools
 
 ROOT = config.ROOT
 R = config.REGION
@@ -34,6 +34,7 @@ acc = boto3.client("bedrock-agentcore-control", region_name=R)
 ACCOUNT = boto3.client("sts").get_caller_identity()["Account"]
 
 GATE_FN = f"{config.PREFIX}-gate"
+SCAN_FN = f"{config.PREFIX}-scan"
 GATE_ROLE = f"{config.PREFIX}-gate"
 AUDITOR_ROLE = f"{config.PREFIX}-auditor"
 HARNESS_ROLE = f"{config.PREFIX}-harness"
@@ -92,48 +93,54 @@ def ensure_guardrail():
     return gid, version
 
 
-def gate_zip():
+def lambda_zip(handler_file):
+    """The handler at the zip root plus the warden package it imports."""
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        z.write(ROOT / "hooks/gate.py", "gate.py")
+        z.write(ROOT / handler_file, pathlib.Path(handler_file).name)
         for name in ("__init__.py", "rules.py", "tools.py", "scanner.py", "config.py"):
             z.write(ROOT / "warden" / name, f"warden/{name}")
     return buf.getvalue()
 
 
-def ensure_gate(role_arn, gid, gver):
-    env = {"Variables": {"GUARDRAIL_ID": gid, "GUARDRAIL_VERSION": gver}}
-    code = gate_zip()
+def ensure_function(name, role_arn, handler_file, env, timeout, memory):
+    code = lambda_zip(handler_file)
+    handler = pathlib.Path(handler_file).stem + ".lambda_handler"
+    settings = {
+        "Role": role_arn,
+        "Timeout": timeout,
+        "MemorySize": memory,
+        "Handler": handler,
+    }
+    if env:
+        # Omitted when empty: even an empty Variables block makes Lambda call
+        # kms:Decrypt at start-up, which the scanner's deny-all role refuses.
+        settings["Environment"] = {"Variables": env}
     try:
-        lam.get_function(FunctionName=GATE_FN)
-        lam.update_function_code(FunctionName=GATE_FN, ZipFile=code)
-        lam.get_waiter("function_updated_v2").wait(FunctionName=GATE_FN)
-        lam.update_function_configuration(
-            FunctionName=GATE_FN, Role=role_arn, Environment=env
-        )
-        log("gate Lambda updated")
+        lam.get_function(FunctionName=name)
+        lam.update_function_code(FunctionName=name, ZipFile=code)
+        lam.get_waiter("function_updated_v2").wait(FunctionName=name)
+        lam.update_function_configuration(FunctionName=name, **settings)
+        lam.get_waiter("function_updated_v2").wait(FunctionName=name)
+        log(f"Lambda {name} updated")
     except lam.exceptions.ResourceNotFoundException:
         for attempt in range(12):  # a new role takes a few seconds to become assumable
             try:
                 lam.create_function(
-                    FunctionName=GATE_FN,
+                    FunctionName=name,
                     Runtime="python3.13",
-                    Role=role_arn,
-                    Handler="gate.lambda_handler",
                     Code={"ZipFile": code},
-                    Timeout=30,
-                    MemorySize=256,
-                    Environment=env,
                     Tags={"app": config.PREFIX},
+                    **settings,
                 )
                 break
             except lam.exceptions.InvalidParameterValueException:
                 if attempt == 11:
                     raise
                 time.sleep(5)
-        log("gate Lambda created")
-    lam.get_waiter("function_active_v2").wait(FunctionName=GATE_FN)
-    return lam.get_function(FunctionName=GATE_FN)["Configuration"]["FunctionArn"]
+        log(f"Lambda {name} created")
+    lam.get_waiter("function_active_v2").wait(FunctionName=name)
+    return lam.get_function(FunctionName=name)["Configuration"]["FunctionArn"]
 
 
 def model_resources():
@@ -155,7 +162,7 @@ def harness_spec(role_arn, gate_arn):
         },
         "systemPrompt": [{"text": config.SYSTEM_PROMPT}],
         "tools": harness_tools(),
-        "allowedTools": TOOL_NAMES,
+        "allowedTools": ALLOWED_SELECTORS,
         "hooks": [
             {"beforeInvocation": {"name": "screen_request", "target": hook_target}},
             {
@@ -269,7 +276,14 @@ def main():
         },
         fill("infra/iam/gate-policy.json", GUARDRAIL_ID=gid),
     )
-    gate_arn = ensure_gate(gate_role, gid, gver)
+    gate_arn = ensure_function(
+        GATE_FN,
+        gate_role,
+        "hooks/gate.py",
+        {"GUARDRAIL_ID": gid, "GUARDRAIL_VERSION": gver},
+        timeout=30,
+        memory=256,
+    )
 
     auditor_arn = ensure_role(
         AUDITOR_ROLE,
@@ -278,12 +292,16 @@ def main():
             "Statement": [
                 {
                     "Effect": "Allow",
-                    "Principal": {"AWS": f"arn:aws:iam::{ACCOUNT}:root"},
+                    # Only the scanner Lambda can hold this role; no person or laptop can.
+                    "Principal": {"Service": "lambda.amazonaws.com"},
                     "Action": "sts:AssumeRole",
                 }
             ],
         },
-        json.loads((ROOT / "infra/iam/auditor-policy.json").read_text()),
+        fill("infra/iam/auditor-policy.json"),
+    )
+    scanner_arn = ensure_function(
+        SCAN_FN, auditor_arn, "lambdas/scan.py", {}, timeout=300, memory=512
     )
 
     harness_policy = fill(
@@ -326,6 +344,7 @@ def main():
             "guardrail_version": gver,
             "gate_arn": gate_arn,
             "auditor_role_arn": auditor_arn,
+            "scanner_arn": scanner_arn,
             "harness_role_arn": harness_role,
             "harness_id": h["harnessId"],
             "harness_arn": h["arn"],

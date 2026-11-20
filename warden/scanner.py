@@ -17,7 +17,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 from botocore.exceptions import ClientError
 
-NOW = dt.datetime.now(dt.timezone.utc)
+
+def _now():
+    return dt.datetime.now(dt.timezone.utc)
 
 
 def _tags(tag_list):
@@ -25,7 +27,7 @@ def _tags(tag_list):
 
 
 def _age_days(ts):
-    return (NOW - ts).days if ts else None
+    return (_now() - ts).days if ts else None
 
 
 def enabled_regions(session):
@@ -171,8 +173,8 @@ def scan_buckets(session):
 
 def scan_costs(session, account):
     ce = session.client("ce", region_name="us-east-1")
-    start = NOW.date().replace(day=1)
-    end = NOW.date() + dt.timedelta(days=1)
+    start = _now().date().replace(day=1)
+    end = _now().date() + dt.timedelta(days=1)
     resp = ce.get_cost_and_usage(
         TimePeriod={"Start": start.isoformat(), "End": end.isoformat()},
         Granularity="MONTHLY",

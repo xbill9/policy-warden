@@ -10,7 +10,7 @@ The only path from an English sentence to a reported number:
 import json
 import re
 
-from . import rules, scanner
+from . import rules
 
 REGION_RE = r"^[a-z]{2}(-gov)?-[a-z]+-\d$"
 
@@ -30,6 +30,13 @@ CONDITION_SCHEMA = {
     "additionalProperties": False,
 }
 
+_CONDS = {
+    "type": "array",
+    "items": CONDITION_SCHEMA,
+    "minItems": 1,
+    "maxItems": rules.MAX_CONDITIONS,
+}
+
 RULE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -38,17 +45,27 @@ RULE_SCHEMA = {
             "description": "The policy sentence, verbatim, this rule was compiled from.",
         },
         "resource_type": {"type": "string", "enum": sorted(rules.RESOURCE_TYPES)},
-        "where": {
-            "type": "array",
-            "items": CONDITION_SCHEMA,
-            "minItems": 1,
-            "maxItems": rules.MAX_CONDITIONS,
-            "description": "A resource violates the rule when ALL conditions hold.",
+        "require": {
+            **_CONDS,
+            "description": (
+                "Use for 'must' / 'every ... must' sentences: the conditions a compliant resource meets. "
+                "A resource violates the rule unless ALL hold. "
+                "Example: 'Every EBS volume must be attached' -> require [attrs.attached eq true]."
+            ),
+        },
+        "violation_when": {
+            **_CONDS,
+            "description": (
+                "Use for 'no ... may' / 'must not' sentences: the conditions that make a resource a violation. "
+                "A resource violates the rule when ALL hold. "
+                "Example: 'No volume may exceed 100 GiB' -> violation_when [attrs.size_gib gt 100]."
+            ),
         },
         "severity": {"type": "string", "enum": sorted(rules.SEVERITIES)},
     },
-    "required": ["text", "resource_type", "where"],
+    "required": ["text", "resource_type"],
     "additionalProperties": False,
+    "description": "Give exactly one of require or violation_when.",
 }
 
 TOOL_SPECS = {
@@ -118,6 +135,11 @@ TOOL_SPECS = {
 
 TOOL_NAMES = sorted(TOOL_SPECS)
 
+# allowedTools selectors. A plain name matches built-in tools only, so the inline
+# functions need the "@*/name" form; measured 2026-11-20: plain names left the model
+# with no tools (0 of 2 runs called scan_account), "@*/name" 2 of 2.
+ALLOWED_SELECTORS = [f"@*/{n}" for n in TOOL_NAMES]
+
 
 def harness_tools():
     """The tools list for CreateHarness."""
@@ -139,8 +161,8 @@ def harness_tools():
 class ToolBox:
     """Client-side tool state for one session."""
 
-    def __init__(self, session, approver):
-        self.session = session
+    def __init__(self, scan_fn, approver):
+        self.scan_fn = scan_fn  # callable(regions) -> (records, errors)
         self.approver = approver  # callable(rule) -> (bool, reason)
         self.records = None
         self.approved = {}
@@ -158,7 +180,7 @@ class ToolBox:
             isinstance(r, str) and re.match(REGION_RE, r) for r in regions
         ):
             return {"error": "bad region name"}
-        self.records, errors = scanner.scan_account(self.session, regions)
+        self.records, errors = self.scan_fn(regions)
         counts = {}
         for r in self.records:
             counts[r["type"]] = counts.get(r["type"], 0) + 1
@@ -170,7 +192,10 @@ class ToolBox:
         return rules.field_catalog(self.records)
 
     def propose_rule(self, rule):
-        errors = rules.validate_rule(rule)
+        catalog = (
+            rules.field_catalog(self.records) if self.records is not None else None
+        )
+        errors = rules.validate_rule(rule, catalog)
         if errors:
             return {"approved": False, "errors": errors}
         rule_id = f"R{len(self.proposed) + 1}"
@@ -201,6 +226,7 @@ def as_tool_result(tool_use_id, payload):
         "toolResult": {
             "toolUseId": tool_use_id,
             "status": status,
-            "content": [{"json": json.loads(json.dumps(payload, default=str))}],
+            # Text, not a json block: the harness rejected json with "content_type=<json_> | unsupported type".
+            "content": [{"text": json.dumps(payload, default=str)}],
         }
     }

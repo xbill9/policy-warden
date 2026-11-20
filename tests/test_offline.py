@@ -56,8 +56,12 @@ RECORDS = [
 ]
 
 
-def rule(resource_type, *where):
-    return {"text": "t", "resource_type": resource_type, "where": list(where)}
+def rule(resource_type, *conds):
+    return {"text": "t", "resource_type": resource_type, "violation_when": list(conds)}
+
+
+def req(resource_type, *conds):
+    return {"text": "t", "resource_type": resource_type, "require": list(conds)}
 
 
 class Engine(unittest.TestCase):
@@ -89,6 +93,39 @@ class Engine(unittest.TestCase):
     def test_missing_tag_across_all_types_skips_cost(self):
         r = rules.evaluate(rule("*", {"field": "tags.owner", "op": "missing"}), RECORDS)
         self.assertEqual((r["resources_checked"], r["violations"]), (4, 2))
+
+    def test_require_counts_resources_that_fail(self):
+        r = rules.evaluate(
+            req("ec2:volume", {"field": "attrs.attached", "op": "eq", "value": True}),
+            RECORDS,
+        )
+        self.assertEqual([e["arn"] for e in r["evidence"]], ["v1", "v3"])
+
+    def test_require_missing_tag_is_a_violation(self):
+        r = rules.evaluate(req("*", {"field": "tags.owner", "op": "exists"}), RECORDS)
+        self.assertEqual((r["resources_checked"], r["violations"]), (4, 2))
+
+    def test_both_or_neither_direction_rejected(self):
+        c = {"field": "tags.x", "op": "exists"}
+        both = {
+            "text": "t",
+            "resource_type": "ec2:volume",
+            "require": [c],
+            "violation_when": [c],
+        }
+        neither = {"text": "t", "resource_type": "ec2:volume"}
+        self.assertTrue(rules.validate_rule(both))
+        self.assertTrue(rules.validate_rule(neither))
+
+    def test_unknown_attr_field_rejected_against_scan(self):
+        catalog = rules.field_catalog(RECORDS)
+        bad = req(
+            "ec2:volume",
+            {"field": "attrs.metadata_options_imdsv2", "op": "eq", "value": True},
+        )
+        self.assertTrue(rules.validate_rule(bad, catalog))
+        good = req("ec2:volume", {"field": "attrs.attached", "op": "eq", "value": True})
+        self.assertEqual(rules.validate_rule(good, catalog), [])
 
     def test_cost_threshold(self):
         r = rules.evaluate(
@@ -139,7 +176,7 @@ class Tools(unittest.TestCase):
         )
 
     def test_rejected_rule_cannot_be_evaluated(self):
-        box = tools.ToolBox(session=None, approver=lambda r: (False, "no"))
+        box = tools.ToolBox(scan_fn=None, approver=lambda r: (False, "no"))
         box.records = RECORDS
         res = box.propose_rule(
             rule("ec2:volume", {"field": "attrs.attached", "op": "eq", "value": False})
@@ -156,7 +193,7 @@ def hook(event, **ctx):
 
 class Gate(unittest.TestCase):
     def setUp(self):
-        p = mock.patch.object(gate, "guardrail_check", return_value=None)
+        p = mock.patch.object(gate, "guardrail_check", return_value=[])
         p.start()
         self.addCleanup(p.stop)
 
@@ -249,6 +286,24 @@ class Gate(unittest.TestCase):
                     toolResult={"x": 1},
                 ),
                 "deny",
+            )
+
+    def test_topic_hit_on_tool_result_allowed(self):
+        with mock.patch.object(
+            gate, "guardrail_check", return_value=["topic:Remediation"]
+        ):
+            self.assertEqual(
+                hook(
+                    "after_tool_call",
+                    toolName="evaluate_rules",
+                    toolType="inline_function",
+                    toolResult={"x": 1},
+                ),
+                "allow",
+            )
+            msgs = [{"role": "user", "content": [{"text": "delete the volumes"}]}]
+            self.assertEqual(
+                hook("before_invocation", messages=msgs, messageCount=1), "deny"
             )
 
     def test_tool_result_followup_skips_text_check(self):

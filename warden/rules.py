@@ -36,13 +36,31 @@ NO_VALUE_OPS = {"exists", "missing"}
 SEVERITIES = {"low", "medium", "high"}
 
 FIELD_RE = re.compile(r"^(region|type|arn|(attrs|tags)\.[A-Za-z0-9_:./@+=-]{1,128})$")
-RULE_KEYS = {"id", "text", "resource_type", "where", "severity"}
+RULE_KEYS = {"id", "text", "resource_type", "require", "violation_when", "severity"}
+# A rule states its direction in its key, because models write both forms:
+#   require         a resource violates the rule unless ALL conditions hold
+#   violation_when  a resource violates the rule when ALL conditions hold
+# Measured 2026-11-20 (Nova 2 Lite, one key "where" meaning violation_when): 4 of 7
+# rules came back as the compliant condition, which code then counted exactly.
+DIRECTIONS = ("require", "violation_when")
 MAX_CONDITIONS = 8
 MAX_EVIDENCE = 25
 
 
-def validate_rule(rule):
-    """Return a list of error strings. Empty list means the rule is valid."""
+def conditions(rule):
+    """(direction, conditions) of a rule, or (None, None) if it has not exactly one."""
+    present = [d for d in DIRECTIONS if d in rule]
+    if len(present) != 1:
+        return None, None
+    return present[0], rule[present[0]]
+
+
+def validate_rule(rule, catalog=None):
+    """Return a list of error strings. Empty list means the rule is valid.
+
+    catalog (from field_catalog) adds a check that every attrs.* field exists for the
+    resource type in the scan; the gate Lambda has no scan and checks syntax only.
+    """
     if not isinstance(rule, dict):
         return ["rule must be an object"]
     errors = []
@@ -57,15 +75,42 @@ def validate_rule(rule):
         errors.append(f"resource_type must be one of {sorted(RESOURCE_TYPES)}")
     if rule.get("severity", "medium") not in SEVERITIES:
         errors.append(f"severity must be one of {sorted(SEVERITIES)}")
-    where = rule.get("where")
-    if not isinstance(where, list) or not where:
-        errors.append("where: a non-empty list of conditions is required")
+    direction, conds = conditions(rule)
+    if direction is None:
+        errors.append(
+            "give exactly one of require (must hold) or violation_when (must not hold)"
+        )
         return errors
-    if len(where) > MAX_CONDITIONS:
-        errors.append(f"where: at most {MAX_CONDITIONS} conditions")
-    for i, cond in enumerate(where):
-        errors.extend(f"where[{i}]: {e}" for e in _validate_condition(cond))
+    if not isinstance(conds, list) or not conds:
+        errors.append(f"{direction}: a non-empty list of conditions is required")
+        return errors
+    if len(conds) > MAX_CONDITIONS:
+        errors.append(f"{direction}: at most {MAX_CONDITIONS} conditions")
+    for i, cond in enumerate(conds):
+        errors.extend(f"{direction}[{i}]: {e}" for e in _validate_condition(cond))
+    if catalog is not None and not errors:
+        errors.extend(_check_fields(rule["resource_type"], conds, catalog))
     return errors
+
+
+def _check_fields(resource_type, conds, catalog):
+    types = (
+        [t for t in catalog if t != "cost:service"]
+        if resource_type == "*"
+        else [resource_type]
+    )
+    known = set()
+    for t in types:
+        known.update((catalog.get(t) or {}).get("attrs", {}))
+    errs = []
+    for c in conds:
+        if c["field"].startswith("attrs."):
+            name = c["field"][len("attrs.") :]
+            if name not in known:
+                errs.append(
+                    f"field {c['field']} does not exist for {resource_type}; known attrs: {sorted(known)}"
+                )
+    return errs
 
 
 def _validate_condition(cond):
@@ -156,15 +201,17 @@ def evaluate(rule, records):
     errors = validate_rule(rule)
     if errors:
         return {"rule_id": rule.get("id"), "error": errors}
+    direction, conds = conditions(rule)
     scoped = [r for r in records if _in_scope(r, rule["resource_type"])]
-    hits = [
-        r
-        for r in scoped
-        if all(
-            _holds(_get(r, c["field"]), c["op"], c.get("value")) for c in rule["where"]
-        )
-    ]
-    fields = [c["field"] for c in rule["where"]]
+
+    def all_hold(r):
+        return all(_holds(_get(r, c["field"]), c["op"], c.get("value")) for c in conds)
+
+    if direction == "violation_when":
+        hits = [r for r in scoped if all_hold(r)]
+    else:
+        hits = [r for r in scoped if not all_hold(r)]
+    fields = [c["field"] for c in conds]
     evidence = []
     for r in hits[:MAX_EVIDENCE]:
         seen = {}
