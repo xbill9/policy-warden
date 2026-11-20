@@ -127,6 +127,14 @@ def _validate_condition(cond):
         errs.append(f"op must be one of {sorted(OPS)}")
         return errs
     value = cond.get("value")
+    if isinstance(field, str) and field.startswith("tags.") and op in NUMERIC_OPS:
+        # Tag values are always strings, so a numeric comparison is false for every
+        # resource and reports 0 violations. Measured 2026-11-20: Nova 2 Lite wrote
+        # tags.Name gt 40 for "a Name tag longer than 40 characters".
+        errs.append(
+            f"tags are text; {op} cannot compare them. For length use matches, e.g. '^.{{41,}}$' for longer than 40"
+        )
+        return errs
     if op in NO_VALUE_OPS:
         if "value" in cond:
             errs.append(f"op {op} takes no value")

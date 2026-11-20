@@ -21,8 +21,8 @@ flowchart LR
     H -->|propose_rule / evaluate_rules<br/>inline tools| C[Client on your machine]
     H -.->|before_tool_call<br/>after_tool_call| G
     C -->|shows compiled rule| U
-    C -->|assume role| A[Auditor role<br/>read-only, deny all writes]
-    A --> AWS[(EC2, EBS, SG, EIP,<br/>S3, Cost Explorer)]
+    C -->|invoke| S[Scanner Lambda<br/>auditor role: read-only,<br/>deny all writes]
+    S --> AWS[(EC2, EBS, SG, EIP,<br/>S3, Cost Explorer)]
     C -->|rules.py: exact counts| H
 ```
 
@@ -30,7 +30,7 @@ The rule set, and what enforces each rule, is in [RULES.md](RULES.md). Four laye
 
 | Layer | What it stops |
 |---|---|
-| **IAM**: auditor role allows reads and denies everything else; the harness role can reach one model and one Lambda | Any write, from any path, even if every other layer fails |
+| **IAM**: the scanner Lambda's auditor role allows reads and denies everything else; the harness role can reach one model and one Lambda | Any write, from any path, even if every other layer fails |
 | **Harness config**: four inline tools, `allowedTools`, iteration/token/time limits | Built-in shell and file tools, runaway sessions |
 | **Gate Lambda hooks**: `before_invocation`, `before_tool_call`, `after_tool_call`, `failureMode: deny` | Prompt attacks in the request, tools off the allowlist, malformed rules, instructions or keys hidden in resource tags |
 | **Human approval and code**: rules run only after approval; `rules.py` computes every count | Unapproved rules, model arithmetic, a wrong operator slipping through unseen |
@@ -59,7 +59,8 @@ Every number on the page comes from the `evaluate_rules` results; the agent's ow
 | `warden/web.py`, `warden/static/index.html` | Local web UI: policy editor, rule approval, reports |
 | `warden/report.py` | Builds a report from a transcript; numbers only from `evaluate_rules` results |
 | `hooks/gate.py` | Gate Lambda for all three hooks |
-| `infra/deploy.py`, `infra/teardown.py` | Create or delete the guardrail, Lambda, three roles and harness |
+| `lambdas/scan.py` | Scanner Lambda; runs `warden/scanner.py` under the auditor role |
+| `infra/deploy.py`, `infra/teardown.py` | Create or delete the guardrail, two Lambdas, three roles and harness |
 | `infra/iam/*.json`, `infra/guardrail.json` | The policies and guardrail, as deployed |
 | `infra/seed.py` | Plants known violations, including a prompt injection in a tag and a fake key |
 | `stress/cases.json`, `stress/run.py` | Seven hostile prompts, scored by checks in code |
@@ -79,16 +80,19 @@ make stress           # results/stress-<time>.md and .json
 make unseed teardown
 ```
 
-Needs AWS credentials that can create IAM roles, a Lambda function, a guardrail and a harness, and Bedrock access to `us.amazon.nova-2-lite-v1:0` (override with `WARDEN_MODEL`; a model whose Marketplace agreement is not yet accepted in the account fails with AccessDeniedException).
+Needs AWS credentials that can create IAM roles, Lambda functions, a guardrail and a harness, and Bedrock access to `us.amazon.nova-2-lite-v1:0` (override with `WARDEN_MODEL`; a model whose Marketplace agreement is not yet accepted in the account fails with AccessDeniedException).
 
 #### Status
 
-Offline tests: 24 of 24 pass (`make test`). The web UI was exercised in Chrome against the scripted run: add a rule, run, approve and reject, read the report. Not yet run against AWS: `make deploy`, `make run`, `make ui` with a real run, `make stress`. Four things rest on docs and the boto3 1.43.118 service model, not on a run:
+Deployed and run end to end in us-east-1 on 2026-11-20 with Amazon Nova 2 Lite.
 
-- Inline tool calls that a `before_tool_call` hook skips: the client treats a tool use as pending only if the stream carries no `toolResult` for it.
-- `allowedTools` selectors for inline functions are the function names.
-- The Guardrail prompt-attack filter flags injected text when it is sent to `ApplyGuardrail` as `INPUT` without input tags.
-- The harness microVM uses the execution role for its own AWS calls, so the explicit deny covers its shell.
+- Offline: `make test`, 29 of 29.
+- Stress test: 7 of 7 on the live agent, `results/stress-20261120-213917.md`. In the two data-borne cases the poisoned tag value and the access key id did reach the tool results, and the gate stopped them there.
+- Full check against `policy.example.md`: 5 rules compiled with the correct direction, 75 violations, IMDSv2 rule refused by validation because the account has no EC2 instances (`results/first-live-run.json`).
+- Scanner: 92 resources across every enabled region in 9.4 s, through the scanner Lambda.
+- IAM simulator on the auditor role: `ec2:DeleteVolume`, `ec2:TerminateInstances`, `s3:DeleteBucket`, `iam:CreateUser`, `kms:Decrypt` explicitDeny; the reads it needs allowed.
+
+Rules that broke during testing, and the fix for each, are in the commit history: the policy itself refused as `Remediation`, rules written as the compliant condition, a numeric comparison on a tag, inline tools hidden by plain-name `allowedTools`, and the deny-all role refusing Lambda's own `kms:Decrypt`.
 
 #### Scope
 

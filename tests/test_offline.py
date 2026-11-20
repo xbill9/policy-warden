@@ -152,6 +152,7 @@ class Engine(unittest.TestCase):
             rule("ec2:volume", {"field": "__class__", "op": "exists"}),
             rule("ec2:volume", {"field": "tags.x", "op": "exists", "value": 1}),
             rule("ec2:volume", {"field": "tags.x", "op": "matches", "value": "("}),
+            rule("ec2:volume", {"field": "tags.Name", "op": "gt", "value": 40}),
             {**rule("ec2:volume", {"field": "tags.x", "op": "exists"}), "delete": True},
         ]
         for b in bad:
