@@ -16,7 +16,7 @@ Entry for the AWS Builder Center hackathon *Agents, your rules: Bedrock Managed 
 
 ```mermaid
 flowchart LR
-    U[Operator] -->|policy in English| H[AgentCore Harness<br/>Claude Sonnet 5.5]
+    U[Operator] -->|policy in English| H[AgentCore Harness<br/>Claude Sonnet 4.6]
     H -->|before_invocation| G[Gate Lambda<br/>+ Bedrock Guardrail]
     H -->|propose_rule / evaluate_rules<br/>inline tools| C[Client on your machine]
     H -.->|before_tool_call<br/>after_tool_call| G
@@ -79,7 +79,7 @@ make stress           # results/stress-<time>.md and .json
 make unseed teardown
 ```
 
-Needs AWS credentials that can create IAM roles, a Lambda function, a guardrail and a harness, and Bedrock access to `us.anthropic.claude-sonnet-5-5` (override with `WARDEN_MODEL`).
+Needs AWS credentials that can create IAM roles, a Lambda function, a guardrail and a harness, and Bedrock access to `us.anthropic.claude-sonnet-4-6` (override with `WARDEN_MODEL`; a model whose Marketplace agreement is not yet accepted in the account fails with AccessDeniedException).
 
 #### Status
 

@@ -12,6 +12,7 @@ import uuid
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import EventStreamError
 
 from . import config
 from .tools import TOOL_SPECS, ToolBox, as_tool_result
@@ -49,10 +50,21 @@ def make_approver(mode):
     return approve
 
 
+def _events(stream, transcript, echo):
+    """Yield stream events. botocore raises an error event (for example a model
+    ValidationException) as EventStreamError; record it and end the stream."""
+    try:
+        yield from stream
+    except EventStreamError as e:
+        transcript.append({"kind": "error", "error": "stream", "detail": str(e)})
+        if echo:
+            print(f"\n[stream error] {e}", file=sys.stderr)
+
+
 def _read_stream(stream, transcript, echo):
     """Consume one InvokeHarness stream. Returns (stop_reason, pending inline tool uses)."""
     blocks, results_seen, stop = {}, set(), None
-    for event in stream:
+    for event in _events(stream, transcript, echo):
         if "contentBlockStart" in event:
             start = event["contentBlockStart"].get("start", {})
             idx = event["contentBlockStart"].get("contentBlockIndex")

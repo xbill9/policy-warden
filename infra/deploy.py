@@ -151,7 +151,6 @@ def harness_spec(role_arn, gate_arn):
             "bedrockModelConfig": {
                 "modelId": config.MODEL_ID,
                 "maxTokens": config.MAX_TOKENS,
-                "temperature": 0.0,
             }
         },
         "systemPrompt": [{"text": config.SYSTEM_PROMPT}],
@@ -174,40 +173,82 @@ def harness_spec(role_arn, gate_arn):
     }
 
 
-def ensure_harness(spec):
+def _find_harness():
     found = [
         h
         for h in acc.list_harnesses().get("harnesses", [])
         if h.get("harnessName") == config.HARNESS_NAME
     ]
-    if found:
-        hid = found[0]["harnessId"]
-        acc.update_harness(harnessId=hid, **spec)
-        log(f"harness {hid} updated")
-    else:
-        for attempt in range(12):  # wait for the new execution role to propagate
-            try:
-                hid = acc.create_harness(
-                    harnessName=config.HARNESS_NAME, tags={"app": config.PREFIX}, **spec
-                )["harness"]["harnessId"]
-                break
-            except ClientError as e:
-                if attempt == 11 or e.response["Error"]["Code"] not in (
-                    "ValidationException",
-                    "AccessDeniedException",
-                ):
-                    raise
-                log(f"create_harness: {e.response['Error']['Message']} (retrying)")
-                time.sleep(5)
-        log(f"harness {hid} created")
+    return found[0] if found else None
+
+
+def _delete_harness(hid):
+    acc.delete_harness(harnessId=hid)
+    log(f"deleting failed harness {hid}")
+    for _ in range(60):
+        if not any(
+            h["harnessId"] == hid for h in acc.list_harnesses().get("harnesses", [])
+        ):
+            return
+        time.sleep(5)
+
+
+def _create_harness(spec):
+    for attempt in range(12):  # the call itself can fail while a new role propagates
+        try:
+            return acc.create_harness(
+                harnessName=config.HARNESS_NAME, tags={"app": config.PREFIX}, **spec
+            )["harness"]["harnessId"]
+        except ClientError as e:
+            if attempt == 11 or e.response["Error"]["Code"] not in (
+                "ValidationException",
+                "AccessDeniedException",
+            ):
+                raise
+            log(f"create_harness: {e.response['Error']['Message']} (retrying)")
+            time.sleep(5)
+    raise AssertionError("unreachable")
+
+
+def _wait_ready(hid):
     for _ in range(90):
         h = acc.get_harness(harnessId=hid)["harness"]
-        if h["status"] == "READY":
+        if h["status"] in ("READY",) or h["status"].endswith("FAILED"):
             return h
-        if h["status"].endswith("FAILED"):
-            raise SystemExit(f"harness {h['status']}: {h.get('failureReason')}")
         time.sleep(5)
     raise SystemExit("harness did not reach READY in 7.5 minutes")
+
+
+def ensure_harness(spec):
+    existing = _find_harness()
+    if existing and existing["status"] == "CREATE_FAILED":
+        _delete_harness(existing["harnessId"])  # a failed harness cannot be updated
+        existing = None
+    if existing:
+        # UpdateHarness wraps nullable fields in optionalValue; CreateHarness does not.
+        update = {**spec, "memory": {"optionalValue": spec["memory"]}}
+        acc.update_harness(harnessId=existing["harnessId"], **update)
+        log(f"harness {existing['harnessId']} updated")
+        h = _wait_ready(existing["harnessId"])
+    else:
+        # Creation validates the execution role asynchronously. Right after the role's
+        # trust policy is written it can report "Role validation failed" and succeed a
+        # minute later, so a failed create is deleted and retried.
+        for attempt in range(3):
+            hid = _create_harness(spec)
+            log(f"harness {hid} created")
+            h = _wait_ready(hid)
+            if h["status"] != "CREATE_FAILED" or "Role validation" not in (
+                h.get("failureReason") or ""
+            ):
+                break
+            if attempt < 2:
+                log("role not yet assumable by AgentCore; retrying in 30s")
+                _delete_harness(hid)
+                time.sleep(30)
+    if h["status"] != "READY":
+        raise SystemExit(f"harness {h['status']}: {h.get('failureReason')}")
+    return h
 
 
 def main():
@@ -264,7 +305,9 @@ def main():
                     "Condition": {
                         "StringEquals": {"aws:SourceAccount": ACCOUNT},
                         "ArnLike": {
-                            "aws:SourceArn": f"arn:aws:bedrock-agentcore:{R}:{ACCOUNT}:harness/*"
+                            # The harness runs on an AgentCore Runtime, which assumes the role
+                            # with a runtime ARN, so harness/* alone fails validation.
+                            "aws:SourceArn": f"arn:aws:bedrock-agentcore:{R}:{ACCOUNT}:*"
                         },
                     },
                 }
