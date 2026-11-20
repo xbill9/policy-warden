@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ApplyOneGuardrail",
+      "Effect": "Allow",
+      "Action": "bedrock:ApplyGuardrail",
+      "Resource": "arn:aws:bedrock:${REGION}:${ACCOUNT}:guardrail/${GUARDRAIL_ID}"
+    },
+    {
+      "Sid": "OwnLogs",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:/aws/lambda/policy-warden-gate:*"
+    }
+  ]
+}

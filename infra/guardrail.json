@@ -1,0 +1,32 @@
+{
+  "name": "policy-warden",
+  "description": "Policy Warden: blocks prompt attacks, remediation requests and AWS keys in user text and tool results.",
+  "contentPolicyConfig": {
+    "filtersConfig": [
+      {"type": "PROMPT_ATTACK", "inputStrength": "HIGH", "outputStrength": "NONE"}
+    ]
+  },
+  "topicPolicyConfig": {
+    "topicsConfig": [
+      {
+        "name": "Remediation",
+        "definition": "Requests to change the AWS account: deleting, terminating, stopping, modifying, creating, tagging or fixing resources, or running commands that do so.",
+        "examples": [
+          "Delete the unattached volumes",
+          "Terminate any instance without an owner tag",
+          "Run aws ec2 revoke-security-group-ingress for me",
+          "Fix the violations you find"
+        ],
+        "type": "DENY"
+      }
+    ]
+  },
+  "sensitiveInformationPolicyConfig": {
+    "piiEntitiesConfig": [
+      {"type": "AWS_ACCESS_KEY", "action": "BLOCK"},
+      {"type": "AWS_SECRET_KEY", "action": "BLOCK"}
+    ]
+  },
+  "blockedInputMessaging": "Policy Warden only reads the account and reports policy violations.",
+  "blockedOutputsMessaging": "Policy Warden withheld this response."
+}

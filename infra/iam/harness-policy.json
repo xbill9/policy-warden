@@ -1,0 +1,71 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OneModelOnly",
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
+      "Resource": [
+        "arn:aws:bedrock:${REGION}:${ACCOUNT}:inference-profile/${MODEL_ID}"
+      ]
+    },
+    {
+      "Sid": "GateHookOnly",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "${GATE_ARN}"
+    },
+    {
+      "Sid": "EcrPublicPull",
+      "Effect": "Allow",
+      "Action": ["ecr-public:GetAuthorizationToken", "sts:GetServiceBearerToken"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Telemetry",
+      "Effect": "Allow",
+      "Action": ["xray:PutTraceSegments", "xray:PutTelemetryRecords", "xray:GetSamplingRules", "xray:GetSamplingTargets"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "LogsGroup",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:DescribeLogStreams"],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:/aws/bedrock-agentcore/runtimes/*"
+    },
+    {
+      "Sid": "LogsDescribe",
+      "Effect": "Allow",
+      "Action": "logs:DescribeLogGroups",
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:*"
+    },
+    {
+      "Sid": "LogsStream",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*"
+    },
+    {
+      "Sid": "Metrics",
+      "Effect": "Allow",
+      "Action": "cloudwatch:PutMetricData",
+      "Resource": "*",
+      "Condition": {"StringEquals": {"cloudwatch:namespace": "bedrock-agentcore"}}
+    },
+    {
+      "Sid": "WorkloadIdentity",
+      "Effect": "Allow",
+      "Action": ["bedrock-agentcore:GetWorkloadAccessToken", "bedrock-agentcore:GetWorkloadAccessTokenForJWT"],
+      "Resource": [
+        "arn:aws:bedrock-agentcore:${REGION}:${ACCOUNT}:workload-identity-directory/default",
+        "arn:aws:bedrock-agentcore:${REGION}:${ACCOUNT}:workload-identity-directory/default/workload-identity/harness_${HARNESS_NAME}-*"
+      ]
+    },
+    {
+      "Sid": "NoAccountAccessFromTheMicroVM",
+      "Effect": "Deny",
+      "Action": ["ec2:*", "s3:*", "iam:*", "sts:AssumeRole", "ce:*", "organizations:*"],
+      "Resource": "*"
+    }
+  ]
+}
