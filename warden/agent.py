@@ -114,17 +114,22 @@ def _read_stream(stream, transcript, echo):
     return stop, pending
 
 
-def run(prompt, approve="ask", echo=True, state=None):
-    """Run one session to completion. Returns the transcript (a list of dicts)."""
+def run(prompt, approve="ask", echo=True, state=None, approver=None, transcript=None):
+    """Run one session to completion. Returns the transcript (a list of dicts).
+
+    approver overrides the --approve mode (the web UI passes one that waits for a click).
+    transcript, if given, is appended to in place so a caller can watch progress.
+    """
     state = state or config.load_state()
     client = boto3.client(
         "bedrock-agentcore",
         region_name=config.REGION,
         config=Config(read_timeout=600, tcp_keepalive=True),
     )
-    toolbox = ToolBox(auditor_session(state), make_approver(approve))
+    toolbox = ToolBox(auditor_session(state), approver or make_approver(approve))
     session_id = f"warden-{uuid.uuid4()}"
-    transcript = [{"kind": "prompt", "text": prompt, "session": session_id}]
+    transcript = transcript if transcript is not None else []
+    transcript.append({"kind": "prompt", "text": prompt, "session": session_id})
     messages = [{"role": "user", "content": [{"text": prompt}]}]
 
     for _ in range(MAX_TURNS):

@@ -179,7 +179,7 @@ class ToolBox:
         self.proposed.append({"rule": rule, "approved": ok, "reason": reason})
         if ok:
             self.approved[rule_id] = rule
-        return {"rule_id": rule_id, "approved": ok, "reason": reason}
+        return {"rule_id": rule_id, "approved": ok, "reason": reason, "rule": rule}
 
     def evaluate_rules(self, rule_ids):
         if self.records is None:

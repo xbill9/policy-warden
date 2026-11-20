@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Policy Warden</title>
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #1b1f24; --muted: #5d6673; --line: #dde1e6;
+  --accent: #2557d6; --accent-ink: #ffffff; --ok: #1f7a4d; --ok-bg: #e6f4ec;
+  --bad: #b42318; --bad-bg: #fdecea; --warn: #8a5a00; --warn-bg: #fff4dc; --code: #f0f2f5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111418; --panel: #1a1f25; --ink: #e6e9ed; --muted: #9aa4b0; --line: #2c333b;
+    --accent: #6d95ff; --accent-ink: #0b1020; --ok: #5fd39a; --ok-bg: #12291e;
+    --bad: #ff8a80; --bad-bg: #331a18; --warn: #f5c062; --warn-bg: #2e2412; --code: #232a32;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { font-size: 18px; margin: 0; }
+.pill { font-size: 12px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.pill.ok { color: var(--ok); background: var(--ok-bg); border-color: transparent; }
+.pill.bad { color: var(--bad); background: var(--bad-bg); border-color: transparent; }
+main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px 20px; max-width: 1400px; margin: 0 auto; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 16px; } }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+h2 { font-size: 15px; margin: 0 0 12px; }
+h3 { font-size: 14px; margin: 0; }
+.muted { color: var(--muted); font-size: 13px; }
+ol.rules { margin: 0 0 12px; padding: 0; list-style: none; counter-reset: r; }
+ol.rules li { counter-increment: r; display: flex; gap: 8px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--line); }
+ol.rules li::before { content: counter(r); color: var(--muted); font-size: 12px; min-width: 18px; padding-top: 2px; }
+ol.rules li span { flex: 1; }
+textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px; resize: vertical; min-height: 60px; }
+button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--panel);
+  color: var(--ink); padding: 6px 12px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+button.approve { background: var(--ok); color: var(--panel); border-color: transparent; }
+button.reject { color: var(--bad); }
+button.x { border: none; background: none; color: var(--muted); padding: 0 4px; font-size: 16px; }
+button:disabled { opacity: .5; cursor: default; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.runs { list-style: none; margin: 0; padding: 0; }
+.runs li { padding: 8px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+.runs li:hover, .runs li.sel { background: var(--bg); }
+.badge { font-size: 12px; padding: 1px 8px; border-radius: 6px; white-space: nowrap; }
+.badge.ok { color: var(--ok); background: var(--ok-bg); }
+.badge.bad { color: var(--bad); background: var(--bad-bg); }
+.badge.warn { color: var(--warn); background: var(--warn-bg); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.card .head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; flex-wrap: wrap; }
+.approval { border: 2px solid var(--warn); background: var(--warn-bg); }
+code, pre { font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+code { background: var(--code); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--code); padding: 10px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+.conds { margin: 8px 0; display: flex; flex-direction: column; gap: 4px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 8px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.arn { word-break: break-all; font-family: ui-monospace, monospace; }
+details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-top: 8px; }
+.log { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; }
+.err { color: var(--bad); }
+.empty { color: var(--muted); padding: 24px 0; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Policy Warden</h1>
+  <span id="deploy" class="pill">checking deployment…</span>
+</header>
+<main>
+  <div>
+    <section>
+      <h2>Policy</h2>
+      <p class="muted">One rule per line, in plain English. The agent turns each one into a check you approve before it runs.</p>
+      <ol class="rules" id="rules"></ol>
+      <textarea id="newRule" placeholder="e.g. Every EBS volume must be attached to an instance."></textarea>
+      <div class="row">
+        <button id="addRule">Add rule</button>
+        <span class="muted" id="policyMsg"></span>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="primary" id="runBtn">Run check</button>
+        <span class="muted" id="runMsg"></span>
+      </div>
+    </section>
+    <section style="margin-top:16px">
+      <h2>Reports</h2>
+      <ul class="runs" id="runs"></ul>
+    </section>
+  </div>
+  <section id="detail"><div class="empty">Run a check, or pick a report.</div></section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const OPS = {eq:"=", ne:"≠", gt:">", gte:"≥", lt:"<", lte:"≤", in:"in", not_in:"not in", exists:"exists", missing:"is missing", contains:"contains", matches:"matches"};
+let policy = [], selected = null, timer = null;
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, {...opts, headers: {"Content-Type": "application/json"}});
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error || r.statusText);
+  return body;
+}
+
+function condText(c) {
+  const v = ["exists", "missing"].includes(c.op) ? "" : " " + JSON.stringify(c.value);
+  return `<code>${esc(c.field)} ${esc(OPS[c.op] || c.op)}${esc(v)}</code>`;
+}
+
+// ---- policy ----
+function renderPolicy() {
+  $("rules").innerHTML = policy.length ? policy.map((r, i) =>
+    `<li><span>${esc(r)}</span><button class="x" title="Remove" data-i="${i}">×</button></li>`).join("")
+    : `<li class="muted">No rules yet.</li>`;
+  $("rules").querySelectorAll("button.x").forEach((b) => b.onclick = () => savePolicy(policy.filter((_, j) => j != b.dataset.i)));
+}
+async function loadPolicy() { policy = (await api("/api/policy")).rules; renderPolicy(); }
+async function savePolicy(next) {
+  try { policy = (await api("/api/policy", {method: "PUT", body: JSON.stringify({rules: next})})).rules;
+        $("policyMsg").textContent = "saved to policy.md"; renderPolicy(); }
+  catch (e) { $("policyMsg").textContent = e.message; }
+}
+$("addRule").onclick = () => {
+  const lines = $("newRule").value.split("\n").map((s) => s.trim()).filter(Boolean);
+  if (!lines.length) return;
+  $("newRule").value = ""; savePolicy([...policy, ...lines]);
+};
+
+// ---- runs ----
+async function loadRuns() {
+  const {runs} = await api("/api/runs");
+  $("runs").innerHTML = runs.length ? runs.map((r) => {
+    const badge = r.status === "running" ? `<span class="badge warn">running</span>`
+      : r.status === "error" ? `<span class="badge bad">error</span>`
+      : r.violations ? `<span class="badge bad">${r.violations} violations</span>`
+      : `<span class="badge ok">${r.rules_evaluated} rules, 0 violations</span>`;
+    return `<li data-id="${esc(r.id)}" class="${r.id === selected ? "sel" : ""}">
+      <span>${esc(new Date(r.started).toLocaleString())}<br><span class="muted">${r.rules} policy rules</span></span>${badge}</li>`;
+  }).join("") : `<li class="muted">No reports yet.</li>`;
+  $("runs").querySelectorAll("li[data-id]").forEach((li) => li.onclick = () => openRun(li.dataset.id));
+  return runs;
+}
+
+$("runBtn").onclick = async () => {
+  $("runBtn").disabled = true; $("runMsg").textContent = "";
+  try { const {id} = await api("/api/runs", {method: "POST", body: "{}"}); await loadRuns(); openRun(id); }
+  catch (e) { $("runMsg").textContent = e.message; $("runBtn").disabled = false; }
+};
+
+async function decide(id, approve) {
+  try { await api(`/api/runs/${id}/decision`, {method: "POST", body: JSON.stringify({approve})}); }
+  catch (e) { $("runMsg").textContent = e.message; }
+  refresh();
+}
+
+async function openRun(id) {
+  selected = id; clearTimeout(timer); await refresh(); loadRuns();
+}
+
+async function refresh() {
+  if (!selected) return;
+  let run;
+  try { run = await api(`/api/runs/${selected}`); } catch (e) { $("detail").innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  const running = run.status === "running";
+  window.__running = running;
+  renderRun(run);
+  $("runBtn").disabled = running;
+  if (running) timer = setTimeout(refresh, 1500); else loadRuns();
+}
+
+function renderRun(run) {
+  const rep = run.report, t = rep.totals;
+  let h = `<div class="head" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <h2>Report ${esc(run.id)}</h2><span class="muted">${esc(run.status)}${run.finished ? " · finished " + esc(new Date(run.finished).toLocaleString()) : ""}</span></div>`;
+  if (run.error) h += `<p class="err">${esc(run.error)}</p>`;
+
+  if (run.pending) {
+    const r = run.pending.rule;
+    h += `<div class="card approval"><div class="head"><h3>Approve rule ${esc(r.id)}?</h3><span class="muted">${esc(r.resource_type)} · ${esc(r.severity || "medium")}</span></div>
+      <p>${esc(r.text)}</p>
+      <div class="muted">A ${esc(r.resource_type === "*" ? "resource" : r.resource_type)} violates this rule when all of these hold:</div>
+      <div class="conds">${r.where.map(condText).join("")}</div>
+      <details><summary>Rule JSON</summary><pre>${esc(JSON.stringify(r, null, 2))}</pre></details>
+      <div class="row"><button class="approve" id="ap">Approve</button><button class="reject" id="rj">Reject</button></div></div>`;
+  }
+
+  h += `<div class="stats">
+    <div class="stat"><b>${t.violations}</b><span class="muted">violations</span></div>
+    <div class="stat"><b>${t.rules_with_violations} / ${t.rules_evaluated}</b><span class="muted">rules failing / evaluated</span></div>
+    <div class="stat"><b>${t.rules_approved} / ${t.rules_proposed}</b><span class="muted">rules approved / proposed</span></div>
+    <div class="stat"><b>${rep.scan ? rep.scan.resources : "–"}</b><span class="muted">resources scanned</span></div></div>`;
+
+  if (rep.hooks_denied.length) {
+    h += `<div class="card"><h3>Blocked by the gate</h3><ul class="log">${rep.hooks_denied.map((d) =>
+      `<li><b>${esc(d.type)}</b>: ${esc(d.reason)}</li>`).join("")}</ul></div>`;
+  }
+
+  for (const r of rep.rules) {
+    const status = !r.approved ? `<span class="badge warn">not approved</span>`
+      : !r.evaluated ? `<span class="badge warn">${r.error ? "error" : (window.__running ? "waiting" : "not evaluated")}</span>`
+      : r.violations ? `<span class="badge bad">${r.violations} of ${r.resources_checked} violate</span>`
+      : `<span class="badge ok">0 of ${r.resources_checked} violate</span>`;
+    h += `<div class="card"><div class="head"><h3>${esc(r.rule_id)} · ${esc(r.sentence || "")}</h3>${status}</div>`;
+    if (r.rule && r.rule.where) h += `<div class="conds">${r.rule.where.map(condText).join("")}</div>`;
+    if (r.reason) h += `<div class="muted">${esc(r.reason)}</div>`;
+    if (r.error) h += `<div class="err">${esc([].concat(r.error).join("; "))}</div>`;
+    if (r.violating_monthly_usd != null) h += `<div class="muted">Month-to-date cost of violating items: $${esc(r.violating_monthly_usd)}</div>`;
+    if (r.evidence.length) {
+      const fields = Object.keys(r.evidence[0].values);
+      h += `<div class="table-wrap"><table><thead><tr><th>Resource</th><th>Region</th>${fields.map((f) => `<th>${esc(f)}</th>`).join("")}</tr></thead><tbody>
+        ${r.evidence.map((e) => `<tr><td class="arn">${esc(e.arn)}</td><td>${esc(e.region)}</td>${fields.map((f) => `<td>${esc(JSON.stringify(e.values[f]))}</td>`).join("")}</tr>`).join("")}
+        </tbody></table></div>`;
+      if (r.evidence_truncated) h += `<div class="muted">Showing the first ${r.evidence.length} of ${r.violations}.</div>`;
+    }
+    h += `</div>`;
+  }
+
+  if (run.progress.length) h += `<details ${run.status === "running" ? "open" : ""}><summary>Activity (${run.progress.length})</summary><ul class="log">${run.progress.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></details>`;
+  if (rep.agent_summary) h += `<details><summary>Agent's own summary (model text; the numbers above come from code)</summary><pre>${esc(rep.agent_summary)}</pre></details>`;
+
+  $("detail").innerHTML = h;
+  if (run.pending) { $("ap").onclick = () => decide(run.id, true); $("rj").onclick = () => decide(run.id, false); }
+}
+
+(async () => {
+  try {
+    const s = await api("/api/status");
+    $("deploy").className = "pill " + (s.deployed ? "ok" : "bad");
+    $("deploy").textContent = s.deployed ? `harness ${s.harness_id} · ${s.model}` : "not deployed: run make deploy";
+  } catch (e) { $("deploy").textContent = e.message; }
+  await loadPolicy();
+  const runs = await loadRuns();
+  const live = runs.find((r) => r.status === "running");
+  if (live) openRun(live.id);
+})();
+</script>
+</body>
+</html>

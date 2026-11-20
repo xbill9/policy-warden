@@ -3,7 +3,7 @@ PYTHON := python3
 POLICY ?= policy.example.md
 APPROVE ?= ask
 
-.PHONY: help install test lint format check deploy seed unseed run stress teardown clean
+.PHONY: help install test lint format check deploy seed unseed run ui stress teardown clean
 
 help:
 	@echo "make install              Install Python packages"
@@ -13,6 +13,7 @@ help:
 	@echo "make deploy               Create or update guardrail, gate Lambda, roles, harness (AWS)"
 	@echo "make seed                 Plant known violations in us-east-1 (two 1 GiB volumes, one SG)"
 	@echo "make run                  Check the account against POLICY=$(POLICY), APPROVE=ask|all|none"
+	@echo "make ui                   Web UI on http://127.0.0.1:8765: edit the policy, approve rules, read reports"
 	@echo "make stress               Run the hostile prompts in stress/cases.json, write results/"
 	@echo "make unseed               Delete the seeded resources"
 	@echo "make teardown             Delete everything make deploy created"
@@ -44,6 +45,9 @@ unseed:
 
 run:
 	$(PYTHON) -m warden.agent --policy $(POLICY) --approve $(APPROVE) "Check this account against the policy."
+
+ui:
+	$(PYTHON) -m warden.web
 
 stress:
 	$(PYTHON) stress/run.py
