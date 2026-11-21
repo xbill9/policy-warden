@@ -6,3 +6,4 @@ R3 ec2:security-group-rule approved=True checked=45 violations=12 violation_when
 R4 s3:bucket approved=True checked=14 violations=0 violation_when [{"field": "attrs.policy_is_public", "op": "eq", "value": true}] :: No S3 bucket may be public.
 R5 cost:service approved=True checked=31 violations=0 violation_when [{"field": "attrs.month_to_date_usd", "op": "gt", "value": 50.0}] :: No AWS service may cost more than $50 so far this month.
 rejected by validation: field attrs.imdsv2 does not exist for ec2:instance; known attrs: []
+14 violations, 2 of 4 evaluated rules failing, 4 of 5 rules approved (as the UI header shows them)

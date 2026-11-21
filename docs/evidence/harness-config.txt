@@ -1,0 +1,61 @@
+# aws bedrock-agentcore-control get-harness (selected fields), 2026-11-21T13:23:54Z
+{
+    "status": "READY",
+    "model": "us.amazon.nova-2-lite-v1:0",
+    "allowedTools": [
+        "@*/describe_fields",
+        "@*/evaluate_rules",
+        "@*/propose_rule",
+        "@*/scan_account"
+    ],
+    "tools": [
+        "scan_account",
+        "describe_fields",
+        "propose_rule",
+        "evaluate_rules"
+    ],
+    "hooks": [
+        {
+            "beforeInvocation": {
+                "name": "screen_request",
+                "target": {
+                    "lambda": {
+                        "arn": "arn:aws:lambda:us-east-1:106059658660:function:policy-warden-gate",
+                        "timeoutSeconds": 30,
+                        "failureMode": "deny"
+                    }
+                }
+            }
+        },
+        {
+            "beforeToolCall": {
+                "name": "allowlist_and_validate",
+                "target": {
+                    "lambda": {
+                        "arn": "arn:aws:lambda:us-east-1:106059658660:function:policy-warden-gate",
+                        "timeoutSeconds": 30,
+                        "failureMode": "deny"
+                    }
+                }
+            }
+        },
+        {
+            "afterToolCall": {
+                "name": "screen_tool_result",
+                "target": {
+                    "lambda": {
+                        "arn": "arn:aws:lambda:us-east-1:106059658660:function:policy-warden-gate",
+                        "timeoutSeconds": 30,
+                        "failureMode": "deny"
+                    }
+                }
+            }
+        }
+    ],
+    "maxIterations": 20,
+    "maxTokens": 4096,
+    "timeoutSeconds": 300,
+    "memory": {
+        "disabled": {}
+    }
+}

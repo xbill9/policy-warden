@@ -1,5 +1,5 @@
 # Policy Warden — where each piece lives
 repo = https://github.com/xbill9/policy-warden
-hackathon = PENDING
+challenge = PENDING
 builder = PENDING
 devto-aws = PENDING
