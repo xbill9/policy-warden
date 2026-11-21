@@ -1,0 +1,22 @@
+1cd98a727659a9362bf111cd50384e5e316764ac
+Fri Nov 20 16:31:47 2026 -0500
+
+Live end-to-end on Nova 2 Lite: scanner Lambda, rule direction, tool exposure fixes
+
+Measured on the deployed harness, 2026-11-20:
+- allowedTools plain names hide inline functions (0 of 2 runs called a tool);
+  @*/name selectors expose them (2 of 2).
+- Tool results must be text; json blocks fail with 'unsupported type'.
+- With one 'where' key, 4 of 7 rules came back as the compliant condition.
+  Rules now state direction: require or violation_when. Next run: 5 of 5 correct.
+- propose_rule rejects attrs fields missing from the scan.
+- Gate: guardrail topics block user requests only; on tool results they flagged
+  rule sentences as Remediation. Tool results are blocked for prompt attacks and keys.
+- Remediation topic narrowed: the policy itself was refused; tuned against 9
+  must-pass / must-block texts, 9 of 9.
+- Scanner runs in a Lambda on the auditor role (trusts lambda.amazonaws.com only),
+  so root can run checks; empty Lambda env omitted because the deny-all role
+  refuses kms:Decrypt at start-up.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

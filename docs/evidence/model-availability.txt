@@ -1,0 +1,6 @@
+# Model availability in us-east-1, 2026-11-21T13:13:28Z (agreementAvailability.status, authorizationStatus)
+amazon.nova-2-lite-v1:0          AVAILABLE	AUTHORIZED
+amazon.nova-pro-v1:0             AVAILABLE	AUTHORIZED
+amazon.nova-micro-v1:0           AVAILABLE	AUTHORIZED
+anthropic.claude-sonnet-5-5      NOT_AVAILABLE	AUTHORIZED
+anthropic.claude-sonnet-4-6      AVAILABLE	AUTHORIZED

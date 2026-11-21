@@ -1,0 +1,8 @@
+# Scanner Lambda, all enabled regions, invoked from the client, 2026-11-21T13:13:28Z
+seconds 9.6
+records 92
+errors []
+  cost:service               31
+  ec2:security-group-rule    45
+  ec2:volume                 2
+  s3:bucket                  14

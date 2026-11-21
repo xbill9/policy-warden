@@ -1,0 +1,51 @@
+# make test, 2026-11-21T13:13:28Z
+python3 -m unittest discover -s tests -v
+test_both_or_neither_direction_rejected (test_offline.Engine.test_both_or_neither_direction_rejected) ... ok
+test_conditions_are_anded (test_offline.Engine.test_conditions_are_anded) ... ok
+test_cost_threshold (test_offline.Engine.test_cost_threshold) ... ok
+test_gt_excludes_the_boundary (test_offline.Engine.test_gt_excludes_the_boundary) ... ok
+test_gte_counts_the_boundary (test_offline.Engine.test_gte_counts_the_boundary) ... ok
+test_missing_tag_across_all_types_skips_cost (test_offline.Engine.test_missing_tag_across_all_types_skips_cost) ... ok
+test_numeric_op_on_missing_or_bool_field_is_false (test_offline.Engine.test_numeric_op_on_missing_or_bool_field_is_false) ... ok
+test_require_counts_resources_that_fail (test_offline.Engine.test_require_counts_resources_that_fail) ... ok
+test_require_missing_tag_is_a_violation (test_offline.Engine.test_require_missing_tag_is_a_violation) ... ok
+test_tag_values_never_in_field_catalog (test_offline.Engine.test_tag_values_never_in_field_catalog) ... ok
+test_unknown_attr_field_rejected_against_scan (test_offline.Engine.test_unknown_attr_field_rejected_against_scan) ... ok
+test_validation_rejects_bad_rules (test_offline.Engine.test_validation_rejects_bad_rules) ... ok
+test_access_key_in_result_denied (test_offline.Gate.test_access_key_in_result_denied) ... ok
+test_extra_input_keys_denied (test_offline.Gate.test_extra_input_keys_denied) ... ok
+test_guardrail_flag_denies_result (test_offline.Gate.test_guardrail_flag_denies_result) ... ok
+test_invalid_rule_denied_before_reaching_client (test_offline.Gate.test_invalid_rule_denied_before_reaching_client) ... ok
+test_tool_result_followup_skips_text_check (test_offline.Gate.test_tool_result_followup_skips_text_check) ... ok
+test_topic_hit_on_tool_result_allowed (test_offline.Gate.test_topic_hit_on_tool_result_allowed) ... ok
+test_truncated_input_denied (test_offline.Gate.test_truncated_input_denied) ... ok
+test_unknown_and_builtin_tools_denied (test_offline.Gate.test_unknown_and_builtin_tools_denied) ... ok
+test_valid_inline_call_allowed (test_offline.Gate.test_valid_inline_call_allowed) ... ok
+test_harness_tool_names_match_allowlist (test_offline.Tools.test_harness_tool_names_match_allowlist) ... ok
+test_rejected_rule_cannot_be_evaluated (test_offline.Tools.test_rejected_rule_cannot_be_evaluated) ... ok
+test_model_text_never_feeds_numbers (test_web.Report.test_model_text_never_feeds_numbers) ... ok
+test_bad_run_id_is_404 (test_web.WebAPI.test_bad_run_id_is_404) ... ok
+/home/xbill/.pyenv/versions/3.14.7/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 41829)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_decision_without_pending_rule_refused (test_web.WebAPI.test_decision_without_pending_rule_refused) ... ok
+/home/xbill/.pyenv/versions/3.14.7/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 36663)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_policy_round_trip (test_web.WebAPI.test_policy_round_trip) ... ok
+/home/xbill/.pyenv/versions/3.14.7/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 35159)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_post_without_json_content_type_refused (test_web.WebAPI.test_post_without_json_content_type_refused) ... ok
+/home/xbill/.pyenv/versions/3.14.7/lib/python3.14/unittest/suite.py:107: ResourceWarning: unclosed <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 37865)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_run_with_approvals_produces_code_computed_report (test_web.WebAPI.test_run_with_approvals_produces_code_computed_report) ... ok
+/home/xbill/.pyenv/versions/3.14.7/lib/python3.14/unittest/suite.py:84: ResourceWarning: unclosed <socket.socket fd=3, family=2, type=1, proto=0, laddr=('127.0.0.1', 33053)>
+  return self.run(*args, **kwds)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+
+----------------------------------------------------------------------
+Ran 29 tests in 1.570s
+
+OK

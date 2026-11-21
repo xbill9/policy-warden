@@ -1,0 +1,9 @@
+# Report built by warden/report.py from results/first-live-run.json (2026-11-20, Nova 2 Lite, --approve all)
+totals {"rules_proposed": 5, "rules_approved": 5, "rules_evaluated": 5, "rules_with_violations": 3, "violations": 75}
+hooks denied 0
+R1 checked=2 violations=2 require [{"field": "attrs.attached", "op": "eq", "value": true}] :: Every EBS volume must be attached to an instance.
+R2 checked=61 violations=60 require [{"field": "tags.owner", "op": "exists"}] :: Every EC2 instance and EBS volume must have an owner tag.
+R3 checked=45 violations=13 violation_when [{"field": "attrs.from_port", "op": "eq", "value": 22}, {"field": "attrs.to_port", "op": "eq", "value": 22}, {"field": "attrs.open_to_world", "op": "eq", "value": true}] :: No security group rule may open port 22 to 0.0.0.0/0.
+R4 checked=14 violations=0 violation_when [{"field": "attrs.policy_is_public", "op": "eq", "value": true}] :: No S3 bucket may be public.
+R5 checked=31 violations=0 violation_when [{"field": "attrs.month_to_date_usd", "op": "gt", "value": 50.0}] :: No AWS service may cost more than $50 so far this month.
+rejected by validation: field attrs.imdsv2 does not exist for ec2:instance; known attrs: []

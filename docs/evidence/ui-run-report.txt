@@ -1,0 +1,8 @@
+# Report built by warden/report.py from the web UI run 20261121-132006-ad14 (2026-11-21T13:20:06+00:00 UTC), Nova 2 Lite; operator approved each rule except one scoped to *
+totals {"rules_proposed": 5, "rules_approved": 4, "rules_evaluated": 4, "rules_with_violations": 2, "violations": 14} scanned 92
+R1 ec2:volume approved=True checked=2 violations=2 require [{"field": "attrs.attached", "op": "eq", "value": true}] :: Every EBS volume must be attached to an instance.
+R2 * approved=False checked=None violations=None require [{"field": "tags.owner", "op": "exists"}] :: Every EC2 instance and EBS volume must have an owner tag.
+R3 ec2:security-group-rule approved=True checked=45 violations=12 violation_when [{"field": "attrs.from_port", "op": "eq", "value": 22}, {"field": "attrs.to_port", "op": "eq", "value": 22}, {"field": "attrs.cidr", "op": "eq", "value": "0.0.0.0/0"}] :: No security group rule may open port 22 to 0.0.0.0/0.
+R4 s3:bucket approved=True checked=14 violations=0 violation_when [{"field": "attrs.policy_is_public", "op": "eq", "value": true}] :: No S3 bucket may be public.
+R5 cost:service approved=True checked=31 violations=0 violation_when [{"field": "attrs.month_to_date_usd", "op": "gt", "value": 50.0}] :: No AWS service may cost more than $50 so far this month.
+rejected by validation: field attrs.imdsv2 does not exist for ec2:instance; known attrs: []

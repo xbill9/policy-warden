@@ -1,0 +1,9 @@
+# IAM policy simulator against role policy-warden-auditor, 2026-11-21T13:13:28Z
+ec2:DeleteVolume	explicitDeny
+ec2:TerminateInstances	explicitDeny
+s3:DeleteBucket	explicitDeny
+iam:CreateUser	explicitDeny
+kms:Decrypt	explicitDeny
+ec2:DescribeVolumes	allowed
+s3:GetBucketTagging	allowed
+ce:GetCostAndUsage	allowed

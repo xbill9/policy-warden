@@ -1,0 +1,12 @@
+# make deploy, 2026-11-21T13:13:28Z
+python3 infra/deploy.py
+[deploy] account 106059658660, region us-east-1, model us.amazon.nova-2-lite-v1:0
+[deploy] guardrail omo268w7brcv updated
+[deploy] guardrail version 15
+[deploy] role policy-warden-gate exists, trust and policy refreshed
+[deploy] Lambda policy-warden-gate updated
+[deploy] role policy-warden-auditor exists, trust and policy refreshed
+[deploy] Lambda policy-warden-scan updated
+[deploy] role policy-warden-harness exists, trust and policy refreshed
+[deploy] harness policy_warden-sD2Ts7PXKB updated
+[deploy] READY arn:aws:bedrock-agentcore:us-east-1:106059658660:harness/policy_warden-sD2Ts7PXKB

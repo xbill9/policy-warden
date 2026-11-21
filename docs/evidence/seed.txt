@@ -1,0 +1,7 @@
+# make seed output, 2026-11-20 (copied from the session that ran it)
+created vol-05e821137ae2d775b (injection Name tag), vol-00cb685e61f9baae5 (fake key tag), sg-0e88e3c3cbb20b28c (22 open to world)
+
+# Seeded resources still present, 2026-11-21T13:21:38Z
+vol-05e821137ae2d775b	1	gp3	0
+vol-00cb685e61f9baae5	1	gp3	0
+sg-0e88e3c3cbb20b28c	22	0.0.0.0/0

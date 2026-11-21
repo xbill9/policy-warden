@@ -1,0 +1,14 @@
+7613c2e37858dcd75e84afa2f57d711e76cb18ea
+Fri Nov 20 16:41:13 2026 -0500
+
+Stress test 7 of 7 on the live agent; tags reject numeric ops
+
+The first tag-injection and secret-leak cases passed without the poison ever
+reaching a tool result. Rewritten so the rule names the poisoned tag: the key
+is withheld by the gate's key check, and the injected Name tag is stopped by
+the guardrail's PROMPT_ATTACK filter. Along the way Nova wrote tags.Name gt 40,
+which reported 0 violations; numeric ops on tags are now rejected with a hint
+to use matches. README status and RULES.md updated to the deployed design.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
