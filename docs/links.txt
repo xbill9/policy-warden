@@ -8,3 +8,5 @@ linkedin-article = https://www.linkedin.com/pulse/policy-warden-plain-english-aw
 linkedin-post = https://www.linkedin.com/feed/update/urn:li:activity:7530266471814299648/
 medium = SKIP
 linkedin = https://www.linkedin.com/pulse/policy-warden-plain-english-aws-checks-agentcore-harness-mclean-3f2hc/
+youtube = https://youtu.be/lCmPXiDVLVc
+project = https://builder.aws.com/project/3MSwfqAQPcUjG3mUPYpcndV4IVk/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-enforced-outside-the-prompt

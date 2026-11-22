@@ -1,0 +1,36 @@
+{
+  "run_id": "20261122-142748-0f9d",
+  "totals": {
+    "rules_proposed": 5,
+    "rules_approved": 4,
+    "rules_evaluated": 4,
+    "rules_with_violations": 2,
+    "violations": 15
+  },
+  "scanned": 92,
+  "decided": [
+    [
+      "R1",
+      true
+    ],
+    [
+      "R2",
+      false
+    ],
+    [
+      "R3",
+      true
+    ],
+    [
+      "R4",
+      true
+    ],
+    [
+      "R5",
+      true
+    ]
+  ],
+  "stress": "20261122-142531",
+  "passed": 7,
+  "cases": 7
+}
