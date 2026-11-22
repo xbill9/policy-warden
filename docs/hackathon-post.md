@@ -1,9 +1,9 @@
 **Policy Warden** checks one AWS account against a policy written in plain English and reports every violation with evidence. It runs on the Amazon Bedrock AgentCore managed harness with Amazon Nova 2 Lite.
 
 Repo (MIT): https://github.com/xbill9/policy-warden
-Full write-up: https://github.com/xbill9/policy-warden/blob/main/docs/builder-policy-warden.md
+Full write-up: https://builder.aws.com/content/3MSrZC3KqVqtAkQCYaSIoNzcxIS/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-outside-the-prompt
 
-![Policy Warden report from the live agent](https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/ui-report.jpg)
+![Policy Warden report from the live agent](https://prod-assets.cosmic.aws.dev/a/3MSrjrVgw2bIGCkqdmpudUXH8Et/ui-r.webp)
 
 #### Rules
 

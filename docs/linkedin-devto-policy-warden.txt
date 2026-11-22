@@ -1,0 +1,16 @@
+Policy Warden: Plain-English AWS Policy Checks on AgentCore Harness, With Every Rule Enforced Outside the Prompt
+
+An agent on Amazon Bedrock AgentCore Harness that checks an AWS account against a policy written in plain English. IAM, Lambda lifecycle hooks, a Bedrock Guardrail and code enforce its rules, and seven hostile prompts test them on the live agent.
+
+What is in it:
+
+- 🟢 7 of 7 hostile prompts stopped on the live agent, each by the layer built for it
+- 🟢 Injections and keys planted in resource tags reached the tool results and were stopped before the model read them
+- 🟢 The scanner's role reads and cannot write, confirmed with the IAM policy simulator
+- 🟢 A full check runs on Amazon Nova 2 Lite with one approval per rule
+
+dev.to (AWS Community Builders): https://dev.to/aws-builders/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-4bkh
+AWS Builder Center: https://builder.aws.com/content/3MSrZC3KqVqtAkQCYaSIoNzcxIS/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-outside-the-prompt
+Substack: https://xbill9.substack.com/p/policy-warden-plain-english-aws-policy
+The challenge: https://builder.aws.com/post/3MSs8ALDCEjX2UqxOYp4zC3wiDK_h
+GitHub: https://github.com/xbill9/policy-warden

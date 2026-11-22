@@ -1,5 +1,8 @@
 # Policy Warden — where each piece lives
 repo = https://github.com/xbill9/policy-warden
-challenge = PENDING
-builder = PENDING
+challenge = https://builder.aws.com/post/3MSs8ALDCEjX2UqxOYp4zC3wiDK_h
+builder = https://builder.aws.com/content/3MSrZC3KqVqtAkQCYaSIoNzcxIS/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-outside-the-prompt
 devto-aws = https://dev.to/aws-builders/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-4bkh
+substack = https://xbill9.substack.com/p/policy-warden-plain-english-aws-policy
+linkedin-article = https://www.linkedin.com/pulse/policy-warden-plain-english-aws-checks-agentcore-harness-mclean-3f2hc/
+linkedin-post = https://www.linkedin.com/feed/update/urn:li:activity:7530266471814299648/

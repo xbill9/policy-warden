@@ -289,4 +289,4 @@ The strategy for enforcing an agent's rules outside its prompt on AgentCore Harn
 - Harness lifecycle hooks: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-lifecycle-hooks.html
 - Harness tools and `allowedTools`: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-tools.html
 - Amazon Bedrock Guardrails: https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html
-- IAM policy simulator: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html
+- [IAM policy simulator](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html)
