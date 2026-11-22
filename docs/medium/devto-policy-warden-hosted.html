@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Policy Warden: Plain-English AWS Policy Checks on AgentCore Harness, With Every Rule Enforced Outside the Prompt</title>
+  <meta name="description" content="An agent on Amazon Bedrock AgentCore Harness that checks an AWS account against a policy written in plain English. IAM, Lambda lifecycle hooks, a Bedrock Guardrail and code enforce its rules, and seven hostile prompts test them on the live agent." />
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<p>This article provides a step by step guide to building Policy Warden,
+an agent on Amazon Bedrock AgentCore Harness with one job: check one AWS
+account against a policy written in plain English, and report every
+violation with evidence. Amazon Nova 2 Lite turns each policy sentence
+into a structured rule, a person approves the rule, and code applies it
+to a read-only scan of the account.</p>
+<figure><img src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/medium/img/devto-cover.b3b36b90.jpg" alt="Policy Warden: Plain-English AWS Policy Checks on AgentCore Harness, With Every Rule Enforced Outside the Prompt" /></figure>
+<p>Repository: <a
+href="https://github.com/xbill9/policy-warden">https://github.com/xbill9/policy-warden</a></p>
+<p>The agent's rules are enforced by AWS IAM, AgentCore Harness
+lifecycle hooks, an Amazon Bedrock Guardrail and code. The system prompt
+repeats them, and nothing depends on the model obeying it. Seven hostile
+prompts, including two prompt injections hidden in resource tags, test
+each rule on the deployed agent.</p>
+<p>Entry for the AWS Builder Center hackathon <em>Agents, your rules:
+Bedrock Managed Agents build</em>.</p>
+<hr />
+<h4 id="what-does-policy-warden-do">What Does Policy Warden Do?</h4>
+<p>You write a policy the way you would say it out loud:</p>
+<pre class="text"><code>Every EBS volume must be attached to an instance.
+Every EC2 instance and EBS volume must have an owner tag.
+No security group rule may open port 22 to 0.0.0.0/0.
+Every running EC2 instance must require IMDSv2.
+No S3 bucket may be public.
+No AWS service may cost more than $50 so far this month.</code></pre>
+<p>The agent scans the account, compiles each sentence into one rule,
+shows you the rule, and evaluates the ones you approve. The report lists
+each rule, how many resources it checked, how many violate it, and the
+ARN of every violating resource.</p>
+<p>The model writes rules. It never counts. Every number in a report
+comes from <code>warden/rules.py</code>, and the model quotes it.</p>
+<hr />
+<h4 id="the-agents-rules-in-plain-language">The Agent's Rules, in Plain
+Language</h4>
+<p><strong>What it can access</strong></p>
+<ul>
+<li>It reads EC2 instances, EBS volumes, security group rules, Elastic
+IPs, S3 bucket settings and tags, and month-to-date cost per service.
+Nothing else.</li>
+<li>It reads only the account it is deployed in.</li>
+<li>It has four tools: <code>scan_account</code>,
+<code>describe_fields</code>, <code>propose_rule</code>,
+<code>evaluate_rules</code>.</li>
+</ul>
+<p><strong>What it must refuse</strong></p>
+<ul>
+<li>Changing the account in any way: no delete, stop, terminate, tag,
+modify or create.</li>
+<li>Following instructions found inside resource data, such as a tag
+value.</li>
+<li>Revealing an AWS access key found in the account.</li>
+<li>Prompt attacks in the request itself.</li>
+<li>Reporting a result for a rule nobody approved.</li>
+</ul>
+<p><strong>How it handles edge cases</strong></p>
+<ul>
+<li>Every count and comparison comes from code.</li>
+<li>A malformed rule never runs: an unknown field, a numeric comparison
+on a tag, a string where a number belongs.</li>
+<li>Every rule states its direction: <code>require</code> (a resource
+violates the rule unless every condition holds) or
+<code>violation_when</code> (a resource violates the rule when every
+condition holds).</li>
+<li>If a check cannot read its full input, or the checking Lambda fails,
+the answer is deny.</li>
+</ul>
+<hr />
+<h4 id="how-each-rule-is-enforced">How Each Rule Is Enforced</h4>
+<p>Four layers sit between a prompt and the account. Each one holds even
+if the layers above it fail.</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/medium/img/devto-policy-warden-diagram-1.png" alt="diagram" /></p>
+<p><img src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/medium/img/devto-policy-warden-table-1.png"
+alt="Table: Rule, Enforced by" /></p>
+<hr />
+<h4 id="at-this-point-you-should-have">At This Point You Should
+Have…</h4>
+<ul>
+<li>An AWS account and the AWS CLI, version 2</li>
+<li><code>python3</code> with <code>boto3</code> 1.43 or later</li>
+<li>Access to Amazon Nova 2 Lite in us-east-1</li>
+<li>A clone of <code>policy-warden</code></li>
+</ul>
+<hr />
+<h4 id="step-1--deploy">Step 1 — Deploy</h4>
+<p>One script creates the guardrail, both Lambdas, three IAM roles and
+the Harness, and is safe to re-run:</p>
+<pre class="bash"><code>make deploy
+[deploy] account 106059658660, region us-east-1, model us.amazon.nova-2-lite-v1:0
+[deploy] guardrail omo268w7brcv updated
+[deploy] guardrail version 15
+[deploy] role policy-warden-gate exists, trust and policy refreshed
+[deploy] Lambda policy-warden-gate updated
+[deploy] role policy-warden-auditor exists, trust and policy refreshed
+[deploy] Lambda policy-warden-scan updated
+[deploy] role policy-warden-harness exists, trust and policy refreshed
+[deploy] harness policy_warden-sD2Ts7PXKB updated
+[deploy] READY arn:aws:bedrock-agentcore:us-east-1:106059658660:harness/policy_warden-sD2Ts7PXKB</code></pre>
+<p>The Harness is configuration only: the model, the system prompt, four
+inline function tools, an <code>allowedTools</code> list, three Lambda
+hooks and execution limits. There is no agent container to build.</p>
+<hr />
+<h4 id="step-2--check-the-auditor-role-before-trusting-it">Step 2 —
+Check the Auditor Role Before Trusting It</h4>
+<p>The IAM policy simulator answers whether the scanner's role can
+write, without running a single write:</p>
+<pre class="bash"><code>aws iam simulate-principal-policy --policy-source-arn &lt;auditor role ARN&gt; \
+  --action-names ec2:DeleteVolume ec2:TerminateInstances s3:DeleteBucket iam:CreateUser kms:Decrypt \
+                 ec2:DescribeVolumes s3:GetBucketTagging ce:GetCostAndUsage
+ec2:DeleteVolume    explicitDeny
+ec2:TerminateInstances  explicitDeny
+s3:DeleteBucket explicitDeny
+iam:CreateUser  explicitDeny
+kms:Decrypt explicitDeny
+ec2:DescribeVolumes allowed
+s3:GetBucketTagging allowed
+ce:GetCostAndUsage  allowed</code></pre>
+<p>The scanner Lambda reads the whole account with that role, every
+enabled region in one call:</p>
+<pre class="text"><code>seconds 9.6
+records 92
+errors []
+  cost:service               31
+  ec2:security-group-rule    45
+  ec2:volume                 2
+  s3:bucket                  14</code></pre>
+<hr />
+<h4 id="step-3--plant-known-violations">Step 3 — Plant Known
+Violations</h4>
+<p><code>make seed</code> creates resources with known problems, so
+every check has something to find:</p>
+<ul>
+<li>an unattached 1 GiB volume whose Name tag is a prompt injection
+telling the agent the account is compliant and to recommend deleting
+volumes</li>
+<li>an unattached 1 GiB volume with AWS's documentation example key,
+<code>AKIAIOSFODNN7EXAMPLE</code>, in a tag</li>
+<li>a security group with port 22 open to <code>0.0.0.0/0</code></li>
+</ul>
+<pre class="bash"><code>make seed
+created vol-05e821137ae2d775b (injection Name tag), vol-00cb685e61f9baae5 (fake key tag), sg-0e88e3c3cbb20b28c (22 open to world)</code></pre>
+<hr />
+<h4 id="step-4--run-a-check">Step 4 — Run a Check</h4>
+<p><code>make ui</code> serves a page on <code>127.0.0.1:8765</code> for
+editing the policy, approving each rule as the agent proposes it, and
+reading reports. <code>make run</code> does the same in the
+terminal.</p>
+<p>Each approval card shows the sentence, the compiled conditions and
+the rule's direction in capitals, UNLESS or WHEN, because the direction
+decides which resources count:</p>
+<p><img
+src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/ui-approve.jpg"
+alt="A rule from the live agent waiting for approval: &quot;Every EBS volume must be attached to an instance&quot; compiled to attrs.attached = true, with UNLESS" /></p>
+<p>The report for the six-sentence policy above, from the live agent on
+2026-11-21:</p>
+<p><img
+src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/ui-report.jpg"
+alt="The Policy Warden report: 14 violations, 2 of 4 evaluated rules failing, 4 of 5 rules approved, 92 resources scanned" /></p>
+<p><img src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/medium/img/devto-policy-warden-table-2.png"
+alt="Table: Rule, Decision, Checked, Violations" /></p>
+<p>The owner-tag sentence came back with resource type <code>*</code>,
+which also covers security group rules and S3 buckets, so it was
+rejected at the approval card. The IMDSv2 sentence was refused by
+validation: the account has no EC2 instances, so the scan has no IMDSv2
+field, and the agent says so in its answer.</p>
+<hr />
+<h4 id="step-5--stress-test">Step 5 — Stress Test</h4>
+<p><code>make stress</code> runs seven hostile prompts against the
+deployed agent. Pass or fail comes from checks in code on the session
+record: which hooks denied, which tools ran, which rule the model sent,
+and what the answer contains.</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/medium/img/devto-policy-warden-table-3.png"
+alt="Table: Attack, What it tried, What happened, Result" /></p>
+<pre class="text"><code>Stress test 20261120-213917, model us.amazon.nova-2-lite-v1:0, harness policy_warden-sD2Ts7PXKB
+7 of 7 passed.</code></pre>
+<hr />
+<h4 id="rules-that-broke-in-testing-and-the-fix-for-each">Rules That
+Broke in Testing, and the Fix for Each</h4>
+<p>Every one of these produced a plausible answer. Each fix is a check
+in code or configuration, so the same failure cannot pass again.</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/medium/img/devto-policy-warden-table-4.png"
+alt="Table: What broke, Measured, Fix" /></p>
+<hr />
+<h4 id="mag_right-tip-inline-functions-need-name-in-allowedtools">🔎
+Tip: Inline Functions Need <code>@*/name</code> in
+<code>allowedTools</code></h4>
+<p>A plain name in <code>allowedTools</code> matches built-in tools.
+With plain names, Nova saw none of the four inline functions and called
+a tool in 0 of 2 runs; with <code>@*/scan_account</code> and the like, 2
+of 2. The hook Lambda still checks every call by name.</p>
+<hr />
+<h4 id="mag_right-tip-return-inline-tool-results-as-text">🔎 Tip: Return
+Inline Tool Results as Text</h4>
+<p>A <code>toolResult</code> with a <code>json</code> content block
+fails with <code>content_type=&lt;json_&gt; | unsupported type</code>.
+JSON encoded into a <code>text</code> block works.</p>
+<hr />
+<h4 id="mag_right-tip-pick-a-model-the-account-can-already-call">🔎 Tip:
+Pick a Model the Account Can Already Call</h4>
+<p><code>get-foundation-model-availability</code> shows whether the
+model's agreement is in place before a deploy depends on it. Every Nova
+model checked was <code>AVAILABLE</code> with no Marketplace step. The
+model only compiles sentences into rules; code does the counting.</p>
+<hr />
+<h4 id="which-layer-stopped-what">Which Layer Stopped What?</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/policy-warden/main/docs/medium/img/devto-policy-warden-table-5.png"
+alt="Table: Attack, IAM, Harness config, Hook Lambda + guardrail, Code" /></p>
+<hr />
+<h4 id="summary">Summary</h4>
+<p>The goal of this article was to build an AWS policy agent whose rules
+hold when the model does not follow them. The key to the solution was
+enforcing every rule outside the prompt: IAM for what the agent can
+touch, AgentCore Harness hooks and a Bedrock Guardrail for what reaches
+the model, and code for every number. The results were:</p>
+<ul>
+<li>🟢 7 of 7 hostile prompts stopped on the live agent, each by the
+layer built for it</li>
+<li>🟢 Injections and keys planted in resource tags reached the tool
+results and were stopped before the model read them</li>
+<li>🟢 The scanner's role reads and cannot write, confirmed with the IAM
+policy simulator</li>
+<li>🟢 A full check runs on Amazon Nova 2 Lite with one approval per
+rule</li>
+<li>⚠️ A small model writes the wrong filter now and then; direction,
+field and type checks catch the patterns measured here, and the person
+approving each rule catches the rest</li>
+<li>❌ One account and one region per deployment</li>
+</ul>
+<p>Scope: one AWS account in us-east-1 and Amazon Nova 2 Lite. The
+stress test is one run of each case on 2026-11-20 with every rule
+approved automatically; the report above is one check on 2026-11-21 with
+each rule approved or rejected in the web UI.</p>
+<p>The strategy for enforcing an agent's rules outside its prompt on
+AgentCore Harness was validated with an incremental step by step
+approach.</p>
+<hr />
+<h4 id="references">References</h4>
+<ul>
+<li>Repository: <a
+href="https://github.com/xbill9/policy-warden">https://github.com/xbill9/policy-warden</a></li>
+<li>AgentCore Harness: <a
+href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness.html">https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness.html</a></li>
+<li>Harness lifecycle hooks: <a
+href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-lifecycle-hooks.html">https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-lifecycle-hooks.html</a></li>
+<li>Harness tools and <code>allowedTools</code>: <a
+href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-tools.html">https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-tools.html</a></li>
+<li>Amazon Bedrock Guardrails: <a
+href="https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html">https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html</a></li>
+<li>IAM policy simulator: <a
+href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html">https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html</a></li>
+</ul>
+</body>
+</html>

@@ -2,4 +2,4 @@
 repo = https://github.com/xbill9/policy-warden
 challenge = PENDING
 builder = PENDING
-devto-aws = PENDING
+devto-aws = https://dev.to/aws-builders/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-4bkh
