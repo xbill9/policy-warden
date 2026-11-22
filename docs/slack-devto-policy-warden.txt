@@ -1,0 +1,17 @@
+Policy Warden checks an AWS account against a policy written in plain English and reports every violation with evidence. It runs on Amazon Bedrock AgentCore Harness with Amazon Nova 2 Lite, my entry for the Agents, your rules hackathon.
+Its rules are enforced by IAM, harness lifecycle hooks, a Bedrock Guardrail and code, and seven hostile prompts on the live agent, two of them injections hidden in resource tags, were all stopped.
+Repo: https://github.com/xbill9/policy-warden
+
+Builder Center Article is here:
+https://builder.aws.com/content/3MSrZC3KqVqtAkQCYaSIoNzcxIS/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-outside-the-prompt
+
+Substack is here:
+https://xbill9.substack.com/p/policy-warden-plain-english-aws-policy
+
+Dev.to is here:
+https://dev.to/aws-builders/policy-warden-plain-english-aws-policy-checks-on-agentcore-harness-with-every-rule-enforced-4bkh
+
+Linked In is here:
+https://www.linkedin.com/pulse/policy-warden-plain-english-aws-checks-agentcore-harness-mclean-3f2hc/
+
+#AmazonBedrock #AgentCore #AmazonNova #AWSSecurity #AIAgents

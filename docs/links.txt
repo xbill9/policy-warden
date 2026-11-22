@@ -6,3 +6,5 @@ devto-aws = https://dev.to/aws-builders/policy-warden-plain-english-aws-policy-c
 substack = https://xbill9.substack.com/p/policy-warden-plain-english-aws-policy
 linkedin-article = https://www.linkedin.com/pulse/policy-warden-plain-english-aws-checks-agentcore-harness-mclean-3f2hc/
 linkedin-post = https://www.linkedin.com/feed/update/urn:li:activity:7530266471814299648/
+medium = SKIP
+linkedin = https://www.linkedin.com/pulse/policy-warden-plain-english-aws-checks-agentcore-harness-mclean-3f2hc/
